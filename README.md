@@ -1,54 +1,58 @@
-# K8S-documentation# Kubernetes Pod Creation & Networking Flow
-
-This document outlines the step-by-step lifecycle and networking flow when a user deploys a Pod in a Kubernetes cluster.
-
-## Architecture Flow Diagram
+## Kubernetes Pod Creation & Networking Flow
 
 ```mermaid
 flowchart LR
-    %% External Entities
-    User([External User])
+    %% Custom Styling for an "Illustrated" Look
+    classDef userStyle fill:#ffffff,stroke:#333333,stroke-width:2px,stroke-dasharray: 5 5
+    classDef masterStyle fill:#e1f5fe,stroke:#0288d1,stroke-width:2px,color:#000
+    classDef workerStyle fill:#e8f5e9,stroke:#388e3c,stroke-width:2px,color:#000
+    classDef podStyle fill:#f3e5f5,stroke:#8e24aa,stroke-width:3px,color:#000
+    classDef bgMaster fill:#f0f4f8,stroke:#cbd5e1,stroke-width:2px,stroke-dasharray: 5 5
+    classDef bgWorker fill:#f0fdf4,stroke:#bbf7d0,stroke-width:2px,stroke-dasharray: 5 5
+
+    %% External Entity
+    User([👤 External User]):::userStyle
 
     %% Master Node Subgraph
-    subgraph MasterNode [Master Node]
+    subgraph Master["🖥️ Master Node (Control Plane)"]
         direction TB
-        API[API Server]
-        ETCD[(etcd)]
-        Sched[Scheduler]
+        API[⚙️ API Server]:::masterStyle
+        ETCD[(💾 etcd)]:::masterStyle
+        Sched[📅 Scheduler]:::masterStyle
+        CM[🎛️ Control Manager]:::masterStyle
     end
 
     %% Worker Node Subgraph
-    subgraph WorkerNode [Worker Node]
+    subgraph Worker["⚙️ Worker Node"]
         direction TB
-        Kubelet[Kubelet]
-        KProxy[kube-proxy]
-        CRI[Container Runtime <br> e.g., containerd]
-        CNI[CNI Plugin <br> e.g., Calico/Flannel]
-        Pod(((Pod)))
+        Kubelet[🔥 Kubelet]:::workerStyle
+        KProxy[🌐 kube-proxy]:::workerStyle
+        CRI[⬛ containerd / CRI]:::workerStyle
+        CNI[🔌 CNI Plugin]:::workerStyle
+        Pod(((📦 Pod <br> 10.244.1.2))):::podStyle
     end
 
-    %% Master Node Flow
-    User -- "1. Deploy Pod Request" --> API
-    API -- "2. Validates & Stores" --> ETCD
-    Sched -- "3. Watches & Selects Node" --> API
-    Sched -- "4. Sends Decision Back" --> API
-    
-    %% Cross-Node Flow
-    API -- "5. Instructs Kubelet" --> Kubelet
+    %% Flow Steps (Master Node)
+    User -- "1. Deploy Pod\n(YAML Request)" --> API
+    API == "2. Validate & Store" ==> ETCD
+    Sched -. "3. Watch API\nfor new Pods" .-> API
+    Sched -- "4. Send Node\nDecision" --> API
 
-    %% Worker Node Flow
-    Kubelet -- "6. Talks to CRI" --> CRI
-    Kubelet -. "7. Ensures Pod is running" .-> Pod
-    Kubelet -- "8. Invokes CNI" --> CNI
-    CRI -- "8. Invokes CNI" --> CNI
-    CNI -- "9. Assigns IP & setups net" --> Pod
-    KProxy -- "10. Configures network rules" --> Pod
+    %% Cross-Node Instruction (Thick Line)
+    API == "5. Instruct Kubelet\non Worker Node" ==> Kubelet
 
-    %% Styling
-    classDef master fill:#f8f9fa,stroke:#1a73e8,stroke-width:2px;
-    classDef worker fill:#f8f9fa,stroke:#34a853,stroke-width:2px;
-    classDef external fill:#fff,stroke:#333,stroke-width:2px;
+    %% Flow Steps (Worker Node)
+    Kubelet -- "6. Talk to\nContainer Runtime" --> CRI
+    CRI -- "Create Containers" --> Pod
+    Kubelet -. "7. Ensure Pod\nis Running" .-> Pod
     
-    class API,ETCD,Sched master;
-    class Kubelet,CRI,CNI,KProxy,Pod worker;
-    class User external;
+    Kubelet -- "8. Invoke CNI" --> CNI
+    CRI -. "Call CNI" .-> CNI
+    CNI -- "9. Assign IP &\nSetup Network" --> Pod
+    
+    KProxy -- "10. Configure\nNetwork Rules\n(iptables/IPVS)" --> Pod
+```
+
+    %% Apply background styles to subgraphs
+    class Master bgMaster;
+    class Worker bgWorker;
