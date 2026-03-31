@@ -66,7 +66,7 @@ flowchart LR
     C[Agent Configuration]
     D[Azure DevOps]
     E[Classic Pipeline]
-    F[Build (Maven)]
+    F["Build (Maven)"]
     G[Artifact]
     H[Deployment]
 
