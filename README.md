@@ -57,3 +57,39 @@ flowchart LR
     class Master bgMaster;
     class Worker bgWorker;
 
+
+```mermaid
+flowchart LR
+    %% Define Nodes
+    A[Developer]
+    B[EC2 Setup]
+    C[Agent Configuration]
+    D[Azure DevOps]
+    E[Classic Pipeline]
+    F[Build (Maven)]
+    G[Artifact]
+    H[Deployment]
+
+    %% Define Flow
+    A --> B
+    B --> C
+    C --> D
+    D --> E
+    E --> F
+    F --> G
+    G --> H
+
+    %% Define Custom Styles
+    classDef user fill:#475569,stroke:#1e293b,stroke-width:2px,color:#fff,rx:5,ry:5;
+    classDef aws fill:#f59e0b,stroke:#b45309,stroke-width:2px,color:#fff,rx:5,ry:5;
+    classDef azure fill:#0ea5e9,stroke:#0369a1,stroke-width:2px,color:#fff,rx:5,ry:5;
+    classDef build fill:#10b981,stroke:#047857,stroke-width:2px,color:#fff,rx:5,ry:5;
+    classDef deploy fill:#8b5cf6,stroke:#5b21b6,stroke-width:2px,color:#fff,rx:5,ry:5;
+
+    %% Apply Styles to Nodes
+    class A user;
+    class B,C aws;
+    class D azure;
+    class E,F build;
+    class G,H deploy;
+```
