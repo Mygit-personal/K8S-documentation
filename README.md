@@ -37,7 +37,7 @@
     - [1️⃣ Kubelet](#1️⃣-kubelet)
     - [2️⃣ Kube-Proxy](#2️⃣-kube-proxy)
     - [3️⃣ Container Runtime](#3️⃣-container-runtime)
-  - [🎨 Kubernetes Pod Flow (Styled Mermaid Diagram)](#-kubernetes-pod-flow-styled-mermaid-diagram)
+  - [🎨 Kubernetes Pod Flow (With Icons - GitHub Compatible)](#-kubernetes-pod-flow-with-icons---github-compatible)
   - [🎯 Key Interview Points](#-key-interview-points)
   - [✅ Summary](#-summary-1)
   - [☸️ Kubernetes Pod Creation Flow](#️-kubernetes-pod-creation-flow)
@@ -417,29 +417,31 @@ These plugins handle Pod networking and IP management.
 
 ---
 
-## 🎨 Kubernetes Pod Flow (Styled Mermaid Diagram)
+## 🎨 Kubernetes Pod Flow (With Icons - GitHub Compatible)
 
-```mermaid
+```mermaid id="k8sicons1"
 flowchart LR
 
-%% Nodes
-U[User kubectl]
+%% User
+U[👤 User kubectl]
 
+%% Control Plane
 subgraph Control_Plane
-API[API Server]
-ETCD[(etcd)]
-SCHED[Scheduler]
-CM[Controller Manager]
+API[🧠 API Server]
+ETCD[(💾 etcd)]
+SCHED[📅 Scheduler]
+CM[⚙️ Controller Manager]
 end
 
+%% Worker Node
 subgraph Worker_Node
-KLET[Kubelet]
-CRI[Container Runtime]
-CNI[CNI Plugin]
-KPROXY[Kube Proxy]
+KLET[🤖 Kubelet]
+CRI[📦 Container Runtime]
+CNI[🔌 CNI Plugin]
+KPROXY[🌐 Kube Proxy]
 
 subgraph Pod
-POD[Pod Containers]
+POD[🧩 Pod Containers]
 end
 
 end
@@ -462,10 +464,10 @@ CNI -->|9 Assign IP| POD
 KPROXY -->|10 Networking| POD
 
 %% Styling
-classDef user fill:#212121,color:#ffffff,stroke:#757575,stroke-width:2px;
-classDef master fill:#0d47a1,color:#ffffff,stroke:#64b5f6,stroke-width:2px;
-classDef worker fill:#1b5e20,color:#ffffff,stroke:#81c784,stroke-width:2px;
-classDef pod fill:#4a148c,color:#ffffff,stroke:#ce93d8,stroke-width:2px;
+classDef user fill:#212121,color:#ffffff;
+classDef master fill:#0d47a1,color:#ffffff;
+classDef worker fill:#1b5e20,color:#ffffff;
+classDef pod fill:#4a148c,color:#ffffff;
 
 class U user;
 class API,ETCD,SCHED,CM master;
