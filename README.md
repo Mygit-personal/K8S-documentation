@@ -1,61 +1,165 @@
-## Kubernetes Pod Creation & Networking Flow
+# 📦 Container Tools & Kubernetes Overview
 
-```mermaid
-flowchart LR
-    %% Custom Styling for an "Illustrated" Look
-    classDef userStyle fill:#ffffff,stroke:#333333,stroke-width:2px,stroke-dasharray: 5 5
-    classDef masterStyle fill:#e1f5fe,stroke:#0288d1,stroke-width:2px,color:#000
-    classDef workerStyle fill:#e8f5e9,stroke:#388e3c,stroke-width:2px,color:#000
-    classDef podStyle fill:#f3e5f5,stroke:#8e24aa,stroke-width:3px,color:#000
-    classDef bgMaster fill:#f0f4f8,stroke:#cbd5e1,stroke-width:2px,stroke-dasharray: 5 5
-    classDef bgWorker fill:#f0fdf4,stroke:#bbf7d0,stroke-width:2px,stroke-dasharray: 5 5
+## 📑 Table of Contents
 
-    %% External Entity
-    User([👤 External User]):::userStyle
+- [📦 Container Tools \& Kubernetes Overview](#-container-tools--kubernetes-overview)
+  - [📑 Table of Contents](#-table-of-contents)
+  - [🐳 Container Tools](#-container-tools)
+  - [☸️ Kubernetes Overview](#️-kubernetes-overview)
+    - [Key Features:](#key-features)
+  - [⚙️ Containerization vs Orchestration](#️-containerization-vs-orchestration)
+  - [🏗️ Kubernetes Cluster Architecture](#️-kubernetes-cluster-architecture)
+  - [🔀 Types of Kubernetes Clusters](#-types-of-kubernetes-clusters)
+    - [1️⃣ Single Node Cluster](#1️⃣-single-node-cluster)
+      - [Used For:](#used-for)
+      - [Examples:](#examples)
+    - [2️⃣ Multi Node Cluster](#2️⃣-multi-node-cluster)
+      - [Used In:](#used-in)
+      - [Provides:](#provides)
+  - [🖥️ Self-Hosted Kubernetes Cluster](#️-self-hosted-kubernetes-cluster)
+      - [Tools:](#tools)
+  - [☁️ Cloud Hosted Kubernetes Services](#️-cloud-hosted-kubernetes-services)
+  - [✅ Summary](#-summary)
 
-    %% Master Node Subgraph
-    subgraph Master["🖥️ Master Node (Control Plane)"]
-        direction TB
-        API[⚙️ API Server]:::masterStyle
-        ETCD[(💾 etcd)]:::masterStyle
-        Sched[📅 Scheduler]:::masterStyle
-        CM[🎛️ Control Manager]:::masterStyle
-    end
+---
 
-    %% Worker Node Subgraph
-    subgraph Worker["⚙️ Worker Node"]
-        direction TB
-        Kubelet[🔥 Kubelet]:::workerStyle
-        KProxy[🌐 kube-proxy]:::workerStyle
-        CRI[⬛ containerd / CRI]:::workerStyle
-        CNI[🔌 CNI Plugin]:::workerStyle
-        Pod(((📦 Pod <br> 10.244.1.2))):::podStyle
-    end
+## 🐳 Container Tools
 
-    %% Flow Steps (Master Node)
-    User -- "1. Deploy Pod\n(YAML Request)" --> API
-    API == "2. Validate & Store" ==> ETCD
-    Sched -. "3. Watch API\nfor new Pods" .-> API
-    Sched -- "4. Send Node\nDecision" --> API
+Container tools are used to create and run containers. The most common tools include:
 
-    %% Cross-Node Instruction (Thick Line)
-    API == "5. Instruct Kubelet\non Worker Node" ==> Kubelet
+* **Docker**
 
-    %% Flow Steps (Worker Node)
-    Kubelet -- "6. Talk to\nContainer Runtime" --> CRI
-    CRI -- "Create Containers" --> Pod
-    Kubelet -. "7. Ensure Pod\nis Running" .-> Pod
-    
-    Kubelet -- "8. Invoke CNI" --> CNI
-    CRI -. "Call CNI" .-> CNI
-    CNI -- "9. Assign IP &\nSetup Network" --> Pod
-    
-    KProxy -- "10. Configure\nNetwork Rules\n(iptables/IPVS)" --> Pod
-```
+  * Full container platform
+  * Used to build, package, and run containers
 
-    %% Apply background styles to subgraphs
-    class Master bgMaster;
-    class Worker bgWorker;
+* **containerd**
 
+  * Lightweight container runtime
+  * Extracted from Docker
+  * Commonly used by Kubernetes
 
+* **CRI-O**
 
+  * Kubernetes-native container runtime
+  * Directly implements CRI (Container Runtime Interface)
+
+* **rkt (Rocket)**
+
+  * Alternative container engine
+  * Focused on security
+
+---
+
+## ☸️ Kubernetes Overview
+
+Kubernetes is a container orchestration platform that helps manage containers across multiple servers.
+
+### Key Features:
+
+* Load balancing
+* Auto-scaling
+* Self-healing
+* Zero-downtime deployments
+* Rolling updates
+
+---
+
+## ⚙️ Containerization vs Orchestration
+
+* **Containerization**
+
+  * Creating containers
+  * Done using tools like Docker
+
+* **Orchestration**
+
+  * Managing containers at scale
+  * Done using Kubernetes
+
+---
+
+## 🏗️ Kubernetes Cluster Architecture
+
+* **Master Node (Control Plane)**
+
+  * Manages the cluster
+  * Responsible for scheduling, API, and control
+
+* **Worker Node**
+
+  * Runs applications (containers)
+
+---
+
+## 🔀 Types of Kubernetes Clusters
+
+### 1️⃣ Single Node Cluster
+
+* Only one node
+* Acts as both **master + worker**
+* Control plane and applications run on the same machine
+
+#### Used For:
+
+* Learning
+* Testing
+
+#### Examples:
+
+* Minikube
+* K3s
+* Kind
+
+---
+
+### 2️⃣ Multi Node Cluster
+
+* Multiple nodes
+
+  * One or more master nodes
+  * Multiple worker nodes
+
+#### Used In:
+
+* Production environments
+
+#### Provides:
+
+* High availability
+* Scalability
+* Fault tolerance
+
+---
+
+## 🖥️ Self-Hosted Kubernetes Cluster
+
+A **self-hosted cluster** is when we manually install and configure Kubernetes on our own infrastructure.
+
+#### Tools:
+
+* kubeadm
+* KOPS
+* kube-spray
+
+👉 If a company is not using cloud, it is called **on-premises**.
+
+---
+
+## ☁️ Cloud Hosted Kubernetes Services
+
+Managed Kubernetes services provided by cloud providers:
+
+* **AWS → EKS (Elastic Kubernetes Service)**
+* **Azure → AKS (Azure Kubernetes Service)**
+
+---
+
+## ✅ Summary
+
+* Docker → Containerization
+* Kubernetes → Orchestration
+* containerd / CRI-O → Container runtimes
+* Clusters → Single-node (learning) & Multi-node (production)
+* Deployment → Self-hosted (on-prem) or Cloud-hosted
+
+---
