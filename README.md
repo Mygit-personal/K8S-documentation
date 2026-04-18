@@ -37,8 +37,7 @@
     - [1️⃣ Kubelet](#1️⃣-kubelet)
     - [2️⃣ Kube-Proxy](#2️⃣-kube-proxy)
     - [3️⃣ Container Runtime](#3️⃣-container-runtime)
-  - [☸️ Kubernetes Pod Creation Flow (Mermaid Diagram)](#️-kubernetes-pod-creation-flow-mermaid-diagram)
-  - [✅ Notes](#-notes)
+  - [🎨 Kubernetes Pod Flow (Styled Mermaid Diagram)](#-kubernetes-pod-flow-styled-mermaid-diagram)
   - [🎯 Key Interview Points](#-key-interview-points)
   - [✅ Summary](#-summary-1)
   - [☸️ Kubernetes Pod Creation Flow](#️-kubernetes-pod-creation-flow)
@@ -419,62 +418,61 @@ These plugins handle Pod networking and IP management.
 
 ---
 
-## ☸️ Kubernetes Pod Creation Flow (Mermaid Diagram)
+## 🎨 Kubernetes Pod Flow (Styled Mermaid Diagram)
 
 ```mermaid
 flowchart LR
 
-    %% User
-    U[User (kubectl)]
+%% Nodes
+U[User kubectl]
 
-    %% Control Plane
-    subgraph Control_Plane
-        API[API Server]
-        ETCD[(etcd)]
-        SCHED[Scheduler]
-        CM[Controller Manager]
-    end
+subgraph Control_Plane
+API[API Server]
+ETCD[(etcd)]
+SCHED[Scheduler]
+CM[Controller Manager]
+end
 
-    %% Worker Node
-    subgraph Worker_Node
-        KLET[Kubelet]
-        CRI[Container Runtime]
-        CNI[CNI Plugin]
-        KPROXY[Kube-Proxy]
+subgraph Worker_Node
+KLET[Kubelet]
+CRI[Container Runtime]
+CNI[CNI Plugin]
+KPROXY[Kube Proxy]
 
-        subgraph Pod
-            POD[Pod (Containers)]
-        end
-    end
+subgraph Pod
+POD[Pod Containers]
+end
 
-    %% Flow
-    U -->|1. Deploy Pod| API
-    API -->|2. Store State| ETCD
-    API <-->|Watch| SCHED
-    SCHED -->|3. Select Node| API
-    API -->|4. Instruct| KLET
+end
 
-    KLET -->|5. Create Containers| CRI
-    CRI -->|6. Start Pod| POD
-    KLET -->|7. Monitor| POD
+%% Flow
+U -->|1 Deploy Pod| API
+API -->|2 Store State| ETCD
+API <-->|Watch| SCHED
+SCHED -->|3 Select Node| API
+API -->|4 Instruct| KLET
 
-    KLET -.->|8. Call CNI| CNI
-    CRI -.-> CNI
-    CNI -->|9. Assign IP| POD
+KLET -->|5 Create Containers| CRI
+CRI -->|6 Start Pod| POD
+KLET -->|7 Monitor| POD
 
-    KPROXY -->|10. Networking| POD
+KLET -.->|8 Call CNI| CNI
+CRI -.-> CNI
+CNI -->|9 Assign IP| POD
+
+KPROXY -->|10 Networking| POD
+
+%% Styling
+classDef user fill:#212121,color:#ffffff,stroke:#757575,stroke-width:2px;
+classDef master fill:#0d47a1,color:#ffffff,stroke:#64b5f6,stroke-width:2px;
+classDef worker fill:#1b5e20,color:#ffffff,stroke:#81c784,stroke-width:2px;
+classDef pod fill:#4a148c,color:#ffffff,stroke:#ce93d8,stroke-width:2px;
+
+class U user;
+class API,ETCD,SCHED,CM master;
+class KLET,CRI,CNI,KPROXY worker;
+class POD pod;
 ```
-
----
-
-## ✅ Notes
-
-* GitHub Mermaid **does not support icons**, so kept it clean
-* Use `_` instead of spaces in subgraph names
-* Works perfectly in:
-
-  * GitHub README
-  * VS Code Markdown preview
 
 
 ---
