@@ -464,10 +464,10 @@ flowchart LR
 
     %% Cross-Node & External Flow
     U -- "1. Request sent\nDeploy Pod (YAML)" --> API
-    API -- "5. Instructs kubelet on\nselected worker node" ===> KLET
-    API -- "Service Updates\n(endpoints)" ===> KPROXY
+    API -- "5. Instructs kubelet on\nselected worker node" --> KLET
+    API -- "Service Updates\n(endpoints)" --> KPROXY
 
-    %% Theming and Styling (Dark Mode friendly!)
+    %% Theming and Styling 
     classDef default fill:#1e1e1e,stroke:#333,stroke-width:2px,color:#fff;
     classDef master fill:#0d47a1,stroke:#64b5f6,stroke-width:2px,color:#fff;
     classDef worker fill:#1b5e20,stroke:#81c784,stroke-width:2px,color:#fff;
