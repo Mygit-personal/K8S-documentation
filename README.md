@@ -57,7 +57,6 @@
     - [1️⃣1️⃣ Kube-Proxy](#1️⃣1️⃣-kube-proxy)
   - [✅ Summary](#-summary-2)
 - [☸️ Kubernetes Communication, Pods \& API Versions](#️-kubernetes-communication-pods--api-versions)
-  - [📑 Table of Contents](#-table-of-contents-1)
   - [🔗 Control Plane Communication](#-control-plane-communication)
     - [🔹 1️⃣ kubectl (CLI)](#-1️⃣-kubectl-cli)
     - [🔹 2️⃣ API (REST / YAML / JSON)](#-2️⃣-api-rest--yaml--json)
@@ -615,8 +614,6 @@ When a user wants to deploy a Pod, the process works like this:
 ---
 
 # ☸️ Kubernetes Communication, Pods & API Versions
-
-## 📑 Table of Contents
 
 ---
 
