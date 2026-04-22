@@ -56,6 +56,11 @@
   - [🔄 Summary Flow](#-summary-flow)
   - [kube-proxy → Service Routing](#kube-proxy--service-routing)
   - [📊 Kubernetes Pod Creation \& Networking Flow](#-kubernetes-pod-creation--networking-flow-1)
+  - [🔄 Kubernetes Pod Creation \& Networking Flow (Step-by-Step)](#-kubernetes-pod-creation--networking-flow-step-by-step)
+    - [🚀 Step-by-Step Flow](#-step-by-step-flow)
+    - [🖥️ Worker Node Execution](#️-worker-node-execution)
+    - [🌐 Networking Setup](#-networking-setup)
+    - [🔁 Monitoring \& Service Networking](#-monitoring--service-networking)
   - [🔗 Control Plane Communication](#-control-plane-communication)
     - [🔹 1️⃣ kubectl (CLI)](#-1️⃣-kubectl-cli)
     - [🔹 2️⃣ API (REST / YAML / JSON)](#-2️⃣-api-rest--yaml--json)
@@ -116,6 +121,15 @@
     - [Apply Pod](#apply-pod)
     - [Check Pods](#check-pods)
   - [🎯 Final Result](#-final-result)
+- [⚙️ Kubernetes Pod Commands (kubectl)](#️-kubernetes-pod-commands-kubectl)
+  - [🚀 Create Pod](#-create-pod)
+  - [📄 Get Pod Information](#-get-pod-information)
+  - [🔄 Watch Pod Status (Real-Time)](#-watch-pod-status-real-time)
+  - [❌ Delete Pod](#-delete-pod)
+  - [🔁 Replace Pod (Force)](#-replace-pod-force)
+  - [🖥️ Login into Pod (Exec)](#️-login-into-pod-exec)
+  - [🔍 Describe Pod (Detailed Info)](#-describe-pod-detailed-info)
+  - [🧾 Get Pod YAML Configuration](#-get-pod-yaml-configuration)
 
 ---
 
@@ -416,67 +430,6 @@ These plugins handle Pod networking and IP management.
 
 ---
 
-<!-- ## 🎨 Kubernetes Pod Flow (With Icons - GitHub Compatible)
-
-```mermaid id="k8sicons1"
-flowchart LR
-
-%% User
-U[👤 User kubectl]
-
-%% Control Plane
-subgraph Control_Plane
-API[🧠 API Server]
-ETCD[(💾 etcd)]
-SCHED[📅 Scheduler]
-CM[⚙️ Controller Manager]
-end
-
-%% Worker Node
-subgraph Worker_Node
-KLET[🤖 Kubelet]
-CRI[📦 Container Runtime]
-CNI[🔌 CNI Plugin]
-KPROXY[🌐 Kube Proxy]
-
-subgraph Pod
-POD[🧩 Pod Containers]
-end
-
-end
-
-%% Flow
-U -->|1 Deploy Pod| API
-API -->|2 Store State| ETCD
-API <-->|Watch| SCHED
-SCHED -->|3 Select Node| API
-API -->|4 Instruct| KLET
-
-KLET -->|5 Create Containers| CRI
-CRI -->|6 Start Pod| POD
-KLET -->|7 Monitor| POD
-
-KLET -.->|8 Call CNI| CNI
-CRI -.-> CNI
-CNI -->|9 Assign IP| POD
-
-KPROXY -->|10 Networking| POD
-
-%% Styling
-classDef user fill:#212121,color:#ffffff;
-classDef master fill:#0d47a1,color:#ffffff;
-classDef worker fill:#1b5e20,color:#ffffff;
-classDef pod fill:#4a148c,color:#ffffff;
-
-class U user;
-class API,ETCD,SCHED,CM master;
-class KLET,CRI,CNI,KPROXY worker;
-class POD pod;
-<!-- ```  -->
-
-
----
-
 ## 🎯 Key Interview Points
 
 - **API Server** → Communication gateway
@@ -623,6 +576,82 @@ kube-proxy → Service Routing
 ## 📊 Kubernetes Pod Creation & Networking Flow
 
 ![Kubernetes Architecture](images/Kubernates-Pod-creation-&-Network-Flow.png)
+
+---
+
+## 🔄 Kubernetes Pod Creation & Networking Flow (Step-by-Step)
+
+This section outlines the complete lifecycle of a Pod from creation to networking setup.
+
+---
+
+### 🚀 Step-by-Step Flow
+
+1. **User Request**
+   - User sends Pod creation request to the API Server (`kubectl` / API call)
+
+2. **API Server Validation**
+   - API Server validates the request
+   - Stores desired state in **etcd**
+
+3. **Controller Manager**
+   - Watches API Server
+   - Ensures desired state is maintained
+
+4. **Scheduler**
+   - Identifies **unscheduled Pods**
+   - Selects the most suitable worker node
+
+5. **Node Binding**
+   - Scheduler updates API Server with selected node
+
+---
+
+### 🖥️ Worker Node Execution
+
+6. **Kubelet Detection**
+   - Kubelet watches API Server
+   - Detects Pod assigned to its node
+
+7. **Pod Specification Retrieval**
+   - Kubelet retrieves Pod spec from API Server
+
+8. **CRI Communication**
+   - Kubelet communicates with container runtime via **CRI**
+
+9. **Image Pull**
+   - Container runtime pulls image from registry (if not present)
+
+10. **Container Creation**
+   - Container runtime creates and starts container(s)
+
+---
+
+### 🌐 Networking Setup
+
+11. **CNI Plugin**
+   - Assigns Pod IP
+   - Configures network interfaces
+   - Enables Pod-to-Pod communication
+
+---
+
+### 🔁 Monitoring & Service Networking
+
+12. **Kubelet Monitoring**
+   - Ensures Pod is running as per desired state
+   - Restarts containers if needed
+
+13. **Status Reporting**
+   - Kubelet reports Pod status to API Server
+
+14. **kube-proxy**
+   - Configures **iptables/IPVS**
+   - Enables Service-to-Pod communication
+   - Provides load balancing
+
+---
+
 
 ## 🔗 Control Plane Communication
 
@@ -1205,3 +1234,79 @@ kubectl get po
 - Sample Pod successfully deployed
 
 ---
+
+# ⚙️ Kubernetes Pod Commands (kubectl)
+
+This section covers commonly used `kubectl` commands to manage Pods.
+
+---
+
+## 🚀 Create Pod
+```bash
+kubectl apply -f <filename.yaml>
+```
+> Creates a Pod using the specified YAML configuration file
+
+---
+
+## 📄 Get Pod Information
+```bash
+kubectl get po
+```
+> Lists all Pods in the current namespace
+
+---
+
+## 🔄 Watch Pod Status (Real-Time)
+```bash
+kubectl get po -w
+Continuously watches Pod status (Running, Pending, Error, etc.)
+```
+
+---
+
+## ❌ Delete Pod
+```bash
+kubectl delete pod <podname>
+Deletes the specified Pod
+```
+
+---
+
+## 🔁 Replace Pod (Force)
+```bash
+kubectl replace --force -f <filename.yaml>
+Deletes and recreates the Pod from the YAML file
+```
+
+---
+
+## 🖥️ Login into Pod (Exec)
+```bash
+kubectl exec -it <podname> -- bash
+Accesses the Pod container terminal
+```
+
+---
+
+## 🔍 Describe Pod (Detailed Info)
+```bash
+kubectl describe pod <podname>
+```
+
+> Shows detailed Pod information:
+> - Events
+> - Status
+> - Containers
+> - Node details
+
+---
+
+## 🧾 Get Pod YAML Configuration
+```bash
+kubectl get pod <podname> -o yaml
+```
+> Displays the full Pod configuration in YAML format
+
+---
+
