@@ -40,23 +40,23 @@
   - [🎨 Kubernetes Pod Flow (With Icons - GitHub Compatible)](#-kubernetes-pod-flow-with-icons---github-compatible)
   - [🎯 Key Interview Points](#-key-interview-points)
   - [✅ Summary](#-summary-1)
-  - [☸️ Kubernetes Pod Creation Flow](#️-kubernetes-pod-creation-flow)
-  - [🚀 Pod Creation (Control Plane Flow)](#-pod-creation-control-plane-flow)
-    - [1️⃣ API Server Request](#1️⃣-api-server-request)
-    - [2️⃣ Validation \& Storage](#2️⃣-validation--storage)
-    - [3️⃣ Controller Manager](#3️⃣-controller-manager)
-    - [4️⃣ Scheduler](#4️⃣-scheduler)
-    - [5️⃣ Scheduling Decision](#5️⃣-scheduling-decision)
-    - [6️⃣ API Server → Kubelet](#6️⃣-api-server--kubelet)
+- [🚀 Kubernetes Pod Creation \& Networking Flow](#-kubernetes-pod-creation--networking-flow)
+  - [📌 Control Plane Flow](#-control-plane-flow)
+    - [Step 1: Request to API Server](#step-1-request-to-api-server)
+    - [Step 2: Validation \& Persistence](#step-2-validation--persistence)
+    - [Step 3: Controller Manager Reaction](#step-3-controller-manager-reaction)
+    - [Step 4: Scheduler Watches for Unscheduled Pods](#step-4-scheduler-watches-for-unscheduled-pods)
+    - [Step 5: Scheduler Updates API Server](#step-5-scheduler-updates-api-server)
   - [🖥️ Worker Node Flow](#️-worker-node-flow)
-    - [7️⃣ Kubelet](#7️⃣-kubelet)
-    - [8️⃣ Container Runtime](#8️⃣-container-runtime)
-    - [9️⃣ Kubelet Monitoring](#9️⃣-kubelet-monitoring)
-  - [🌐 Networking Setup](#-networking-setup)
-    - [🔟 CNI Plugin](#-cni-plugin)
-    - [1️⃣1️⃣ Kube-Proxy](#1️⃣1️⃣-kube-proxy)
-  - [✅ Summary](#-summary-2)
-- [☸️ Kubernetes Communication, Pods \& API Versions](#️-kubernetes-communication-pods--api-versions)
+    - [Step 6: Kubelet Watches API Server](#step-6-kubelet-watches-api-server)
+    - [Step 7: Kubelet → Container Runtime (CRI)](#step-7-kubelet--container-runtime-cri)
+    - [Step 8: Container Runtime Responsibilities](#step-8-container-runtime-responsibilities)
+    - [Step 9: Networking Setup via CNI](#step-9-networking-setup-via-cni)
+    - [Step 10: Kubelet Ensures Desired State](#step-10-kubelet-ensures-desired-state)
+    - [Step 11: kube-proxy Handles Service Networking](#step-11-kube-proxy-handles-service-networking)
+  - [🔄 Summary Flow](#-summary-flow)
+  - [kube-proxy → Service Routing](#kube-proxy--service-routing)
+  - [📊 Kubernetes Pod Creation \& Networking Flow](#-kubernetes-pod-creation--networking-flow-1)
   - [🔗 Control Plane Communication](#-control-plane-communication)
     - [🔹 1️⃣ kubectl (CLI)](#-1️⃣-kubectl-cli)
     - [🔹 2️⃣ API (REST / YAML / JSON)](#-2️⃣-api-rest--yaml--json)
@@ -78,7 +78,7 @@
     - [1️⃣ Alpha Version](#1️⃣-alpha-version)
     - [2️⃣ Beta Version](#2️⃣-beta-version)
     - [3️⃣ Stable Version (GA)](#3️⃣-stable-version-ga)
-  - [✅ Summary](#-summary-3)
+  - [✅ Summary](#-summary-2)
   - [🔍 API Resources Command](#-api-resources-command)
     - [💡 What it shows:](#-what-it-shows)
   - [📄 Basic Kubernetes Manifest (YAML)](#-basic-kubernetes-manifest-yaml)
@@ -93,7 +93,7 @@
     - [4️⃣ spec](#4️⃣-spec)
     - [5️⃣ status (Auto-generated)](#5️⃣-status-auto-generated)
   - [📌 Example](#-example)
-  - [✅ Summary](#-summary-4)
+  - [✅ Summary](#-summary-3)
 - [☸️ Kubernetes Cluster Setup (3 Nodes using kubeadm)](#️-kubernetes-cluster-setup-3-nodes-using-kubeadm)
   - [📌 Overview](#-overview-1)
   - [⚙️ Prerequisites](#️-prerequisites)
@@ -504,120 +504,126 @@ class POD pod;
 
 ---
 
-## ☸️ Kubernetes Pod Creation Flow
+# 🚀 Kubernetes Pod Creation & Networking Flow
 
-This section explains how a **Pod is created and runs inside a Kubernetes cluster**.
-
----
-
-## 🚀 Pod Creation (Control Plane Flow)
-
-When a user wants to deploy a Pod, the process works like this:
-
-### 1️⃣ API Server Request
-
-- The request is first sent to the **API Server**
+This document explains the step-by-step flow of how a Pod is created and how networking is established in Kubernetes.
 
 ---
 
-### 2️⃣ Validation & Storage
+## 📌 Control Plane Flow
 
-- API Server validates the request
-- Stores it in **etcd**
-
----
-
-### 3️⃣ Controller Manager
-
-- Watches the desired state (Pod request)
-- Ensures the Pod should be created
+### Step 1: Request to API Server
+The user (via `kubectl` or API call) sends a Pod creation request to the API Server, which acts as the entry point to the Kubernetes control plane.
 
 ---
 
-### 4️⃣ Scheduler
-
-- Watches for new Pods
-- Selects a suitable Worker Node
-
----
-
-### 5️⃣ Scheduling Decision
-
-- Scheduler sends decision back to API Server
+### Step 2: Validation & Persistence
+- The API Server:
+  - Authenticates the request
+  - Validates the configuration
+- Stores the desired state of the Pod in **etcd** (key-value store)
 
 ---
 
-### 6️⃣ API Server → Kubelet
+### Step 3: Controller Manager Reaction
+- Continuously watches the API Server
+- Ensures desired state is maintained
+- Example:
+  - Ensures required Pod objects exist
 
-- API Server instructs **kubelet** on the selected Worker Node
+---
+
+### Step 4: Scheduler Watches for Unscheduled Pods
+⚠️ Important: Scheduler looks for **unscheduled Pods** (not just new Pods)
+
+- Scheduler:
+  - Monitors Pods without assigned nodes
+  - Selects best worker node based on:
+    - CPU / Memory
+    - Constraints (taints, affinity, etc.)
+
+---
+
+### Step 5: Scheduler Updates API Server
+- Scheduler binds the Pod to a selected node
+- Updates Pod specification in API Server
 
 ---
 
 ## 🖥️ Worker Node Flow
 
-### 7️⃣ Kubelet
-
-- Receives Pod specification
-- Instructs Container Runtime:
-  - containerd
-  - CRI-O
+### Step 6: Kubelet Watches API Server
+- Kubelet on the worker node:
+  - Detects Pods assigned to its node
+  - Watches API Server continuously
 
 ---
 
-### 8️⃣ Container Runtime
-
-- Pulls container image from registry
-- Creates and starts containers
-- Manages container lifecycle
+### Step 7: Kubelet → Container Runtime (CRI)
+- Kubelet retrieves Pod spec
+- Communicates with container runtime via **CRI (Container Runtime Interface)**
 
 ---
 
-### 9️⃣ Kubelet Monitoring
+### Step 8: Container Runtime Responsibilities
+The container runtime (e.g., containerd, CRI-O):
 
-- Ensures Pod is running correctly
-- Reports status back to API Server
+- Pulls image from registry (if not present)
+- Creates container(s)
+- Starts container(s)
+- Manages lifecycle:
+  - Start
+  - Stop
+  - Restart
 
 ---
 
-## 🌐 Networking Setup
+### Step 9: Networking Setup via CNI
+- CNI (Container Network Interface) plugin is invoked
 
-### 🔟 CNI Plugin
-
-- Invoked by kubelet/container runtime
-- Assigns IP address to Pod
+**Responsibilities:**
+- Assigns unique IP to Pod
+- Configures network interfaces
 - Enables Pod-to-Pod communication
 
-**Examples:**
+---
 
-- Calico
-- Flannel
-- Weave Net
+### Step 10: Kubelet Ensures Desired State
+- Monitors container health
+- Restarts failed containers
+- Reports status to API Server
 
 ---
 
-### 1️⃣1️⃣ Kube-Proxy
+### Step 11: kube-proxy Handles Service Networking
+- Runs on each node
+- Configures networking rules using:
+  - iptables or IPVS
 
-- Configures network rules (iptables/IPVS)
-- Enables Service-to-Pod communication
-
----
-
-## ✅ Summary
-
-- API Server → Entry point
-- etcd → Stores cluster state
-- Controller Manager → Maintains desired state
-- Scheduler → Selects node
-- Kubelet → Executes Pod
-- Container Runtime → Runs containers
-- CNI → Networking (Pod IP)
-- Kube-proxy → Traffic routing
+**Responsibilities:**
+- Enables Service → Pod communication
+- Provides load balancing across Pods
 
 ---
 
-# ☸️ Kubernetes Communication, Pods & API Versions
+## 🔄 Summary Flow
 
+User → API Server → etcd
+↓
+Controller Manager
+↓
+Scheduler → Assign Node
+↓
+Kubelet → Container Runtime
+↓
+CNI → Networking Setup
+↓
+kube-proxy → Service Routing
 ---
+
+## 📊 Kubernetes Pod Creation & Networking Flow
+
+![Kubernetes Architecture](images/Kubernates-Pod-creation-&-Network-Flow.png)
 
 ## 🔗 Control Plane Communication
 
