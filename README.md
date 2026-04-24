@@ -2938,6 +2938,6 @@ spec:
 
 # Service types flow in K8S:
 
-![Kubernates-all-service-types](./images/k8s-service-types.png)
+![Kubernates-all-service-types](./images/k8s-service-types.png) 
 
 ---
