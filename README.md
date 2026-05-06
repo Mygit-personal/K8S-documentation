@@ -3950,20 +3950,46 @@ This document illustrates the correct network communication flow in Kubernetes f
 
 ```mermaid
 flowchart LR
-    A[Container]
-    B[Pod (eth0)]
-    C[veth (Pod End)]
-    D[veth (Host End)]
-    E[Bridge (cni0 on Host)]
-    F[veth (Host End)]
-    G[veth (Pod End)]
-    H[Pod (eth0)]
-    I[Container]
 
+    %% Source Pod
+    subgraph Source_Pod
+        A[Container]
+        B[Pod eth0]
+        C[veth Pod End]
+    end
+
+    %% Host Network
+    subgraph Host_Node
+        D[veth Host End]
+        E[Bridge cni0]
+        F[veth Host End]
+    end
+
+    %% Target Pod
+    subgraph Target_Pod
+        G[veth Pod End]
+        H[Pod eth0]
+        I[Container]
+    end
+
+    %% Flow
     A --> B --> C --> D --> E --> F --> G --> H --> I
-```
 
----
+    %% Styling (high contrast)
+    style A fill:#ffffff,stroke:#1E88E5,stroke-width:2px,color:#000000
+    style I fill:#ffffff,stroke:#1E88E5,stroke-width:2px,color:#000000
+
+    style B fill:#ffffff,stroke:#43A047,stroke-width:2px,color:#000000
+    style H fill:#ffffff,stroke:#43A047,stroke-width:2px,color:#000000
+
+    style C fill:#ffffff,stroke:#FB8C00,stroke-width:2px,color:#000000
+    style G fill:#ffffff,stroke:#FB8C00,stroke-width:2px,color:#000000
+
+    style D fill:#ffffff,stroke:#8E24AA,stroke-width:2px,color:#000000
+    style F fill:#ffffff,stroke:#8E24AA,stroke-width:2px,color:#000000
+
+    style E fill:#ffffff,stroke:#00897B,stroke-width:2px,color:#000000
+```
 
 ### Explanation
 
