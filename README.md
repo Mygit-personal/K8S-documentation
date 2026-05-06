@@ -3980,7 +3980,6 @@ flowchart LR
 
 ## Pods on (Different Node) (Mermaid)
 
-```mermaid
 flowchart LR
     A[Pod (eth0)]
     B[veth]
@@ -3994,7 +3993,7 @@ flowchart LR
     J[Container]
 
     A --> B --> C --> D --> E --> F --> G --> H --> I --> J
-```
+
 
 ### Explanation
 
