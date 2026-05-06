@@ -3983,6 +3983,7 @@ flowchart LR
 ```mermaid
 flowchart LR
 
+    %% Source Node
     subgraph Source_Node
         A[Container]
         B[Pod eth0]
@@ -3992,10 +3993,12 @@ flowchart LR
         A --> B --> C --> D --> E
     end
 
+    %% Network
     subgraph Network
         F[Network via CNI]
     end
 
+    %% Target Node
     subgraph Target_Node
         G[Node eth0]
         H[Bridge cni0]
@@ -4005,7 +4008,26 @@ flowchart LR
         G --> H --> I --> J --> K
     end
 
+    %% Cross-node connection
     E --> F --> G
+
+    %% Styling (AI-like soft colors)
+    style A fill:#E3F2FD,stroke:#1E88E5,stroke-width:2px
+    style K fill:#E3F2FD,stroke:#1E88E5,stroke-width:2px
+
+    style B fill:#E8F5E9,stroke:#43A047,stroke-width:2px
+    style J fill:#E8F5E9,stroke:#43A047,stroke-width:2px
+
+    style C fill:#FFF3E0,stroke:#FB8C00,stroke-width:2px
+    style I fill:#FFF3E0,stroke:#FB8C00,stroke-width:2px
+
+    style D fill:#F3E5F5,stroke:#8E24AA,stroke-width:2px
+    style H fill:#F3E5F5,stroke:#8E24AA,stroke-width:2px
+
+    style E fill:#E0F7FA,stroke:#00897B,stroke-width:2px
+    style G fill:#E0F7FA,stroke:#00897B,stroke-width:2px
+
+    style F fill:#FCE4EC,stroke:#D81B60,stroke-width:2px
 ```
 
 ### Explanation
