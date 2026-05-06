@@ -304,7 +304,55 @@
   - [Scenario](#scenario-1)
   - [Pod Configuration](#pod-configuration)
   - [Pod Status (Tabular View)](#pod-status-tabular-view-1)
-    - [](#)
+    - [Kubernates-Resource](#kubernates-resource)
+- [Kubernetes Annotations](#kubernetes-annotations)
+  - [Definition](#definition-1)
+  - [Core Concept](#core-concept)
+  - [Key Characteristics](#key-characteristics)
+  - [Common Use Cases](#common-use-cases-1)
+    - [Example](#example-3)
+    - [Kubernates-Annotations](#kubernates-annotations)
+- [Kubernetes Namespaces](#kubernetes-namespaces)
+  - [Definition](#definition-2)
+  - [Resource Scope in Kubernetes](#resource-scope-in-kubernetes)
+    - [1. Namespaced Resources](#1-namespaced-resources)
+    - [2. Cluster-Scoped Resources](#2-cluster-scoped-resources)
+  - [RBAC and Namespaces](#rbac-and-namespaces)
+  - [Real-World Usage](#real-world-usage)
+  - [Default Kubernetes Namespaces](#default-kubernetes-namespaces)
+  - [Working with Namespaces in Kubernetes (Step-by-Step)](#working-with-namespaces-in-kubernetes-step-by-step)
+    - [Step 1: Create a Namespace](#step-1-create-a-namespace)
+    - [Step 2: Create a Pod](#step-2-create-a-pod)
+    - [Step 3: Check Pods (Default Behavior)](#step-3-check-pods-default-behavior)
+    - [Step 4: Switch to prod Namespace](#step-4-switch-to-prod-namespace)
+    - [Step 5: Check Pods Again](#step-5-check-pods-again)
+    - [Alternative: Access Without Switching Namespace](#alternative-access-without-switching-namespace)
+    - [Example](#example-4)
+    - [Kubernates - Namespaces](#kubernates---namespaces)
+- [Kubernetes Networking Model (Inside a Worker Node)](#kubernetes-networking-model-inside-a-worker-node)
+  - [Overview](#overview-5)
+  - [Core Concept](#core-concept-1)
+  - [Communication Flow (Inside a Worker Node)](#communication-flow-inside-a-worker-node)
+    - [Step 1: Container Inside Pod](#step-1-container-inside-pod)
+    - [Step 2: Pod Network Namespace](#step-2-pod-network-namespace)
+    - [Step 3: veth Pair (Virtual Ethernet Pair)](#step-3-veth-pair-virtual-ethernet-pair)
+    - [Step 4: Bridge Network](#step-4-bridge-network)
+    - [Step 5: Node Network Interface (eth0)](#step-5-node-network-interface-eth0)
+- [Kubernetes Networking Flow (Mermaid Diagram)](#kubernetes-networking-flow-mermaid-diagram)
+- [Kubernetes Networking Flows](#kubernetes-networking-flows)
+  - [Pods on (Same Node)](#pods-on-same-node)
+    - [Explanation](#explanation-1)
+  - [Pods on (Different Node) (Mermaid)](#pods-on-different-node-mermaid)
+    - [Explanation](#explanation-2)
+- [Kubernetes Networking Models](#kubernetes-networking-models)
+  - [1. Container → Container (Same Pod)](#1-container--container-same-pod)
+  - [2. Pod → Pod Networking](#2-pod--pod-networking)
+    - [Same Node](#same-node)
+    - [Different Nodes](#different-nodes)
+  - [3. Pod → Service Networking](#3-pod--service-networking)
+    - [Pod → Service](#pod--service)
+    - [Service → Pod](#service--pod)
+  - [4. Internet → Service](#4-internet--service)
 
 ---
 
@@ -2989,13 +3037,14 @@ spec:
 
 # Service types flow in K8S:
 
-![Kubernates-all-service-types](./images/k8s-service-types.png) 
+![Kubernates-all-service-types](./images/k8s-service-types.png)
 
 ---
 
 # Kubernetes Restart Policy
 
 ## Overview
+
 `restartPolicy` in Kubernetes defines how the system handles container restarts when a Pod’s container stops or fails.
 
 ---
@@ -3007,14 +3056,17 @@ spec:
 > The container is restarted **every time it stops**, regardless of exit status.
 
 **Use Cases**
-- Long-running applications  
+
+- Long-running applications
 - Web servers (e.g., nginx)
 
 **Behavior**
-- Exit 0 (Success) → Restart  
-- Exit 1 (Failure) → Restart  
+
+- Exit 0 (Success) → Restart
+- Exit 1 (Failure) → Restart
 
 **Example**
+
 ```yaml
 apiVersion: v1
 kind: Pod
@@ -3047,6 +3099,7 @@ spec:
 > Exit 1 (Failure) → Restart
 
 **Example**
+
 ```yaml
 apiVersion: v1
 kind: Pod
@@ -3081,6 +3134,7 @@ spec:
 > Exit 1 (Failure) → No restart
 
 **Example**
+
 ```yaml
 apiVersion: v1
 kind: Pod
@@ -3099,6 +3153,7 @@ spec:
 ```
 
 ---
+
 # Kubernates Restart Policy
 
 ![kubernates-restart-policy](./images/Pod-restart-policy.png)
@@ -3118,9 +3173,11 @@ spec:
 # Kubernetes Pod Probes (Startup Probe)
 
 ## Overview
+
 > Pod probes are **health checks** used by Kubernetes to determine the status of a container and take actions based on its health.
 
 They help Kubernetes verify whether a container:
+
 - Is **running correctly**
 - Is **ready to serve traffic**
 - Needs to be **restarted**
@@ -3128,20 +3185,23 @@ They help Kubernetes verify whether a container:
 ---
 
 ## Types of Probes
-- Startup Probe  
-- Liveness Probe  
-- Readiness Probe  
+
+- Startup Probe
+- Liveness Probe
+- Readiness Probe
 
 ---
 
 ## Startup Probe
 
 ### Definition
+
 > A **Startup Probe** is used to check whether the application inside a container has **started successfully**.
 
 ---
 
 ### Key Behavior
+
 - If the startup probe **fails** → Kubernetes **restarts the container**
 - Until the startup probe **succeeds**:
   - Liveness probe is **disabled**
@@ -3153,6 +3213,7 @@ They help Kubernetes verify whether a container:
 ---
 
 ### Why Use Startup Probe?
+
 - Handles **slow-starting applications**
 - Prevents **premature restarts** by liveness probe
 - Ensures application is fully initialized before other checks begin
@@ -3182,7 +3243,6 @@ spec:
         periodSeconds: 5
         successThreshold: 1
         failureThreshold: 3
-
 ```
 
 # Kubernetes Probe Types & Arguments
@@ -3190,6 +3250,7 @@ spec:
 ## Supported Probe Types
 
 ### httpGet
+
 Sends an HTTP request to a specified **path** and **port** on the container.
 
 - Success → HTTP status code **200–399**
@@ -3198,6 +3259,7 @@ Sends an HTTP request to a specified **path** and **port** on the container.
 ---
 
 ### grpc
+
 Performs health checks using **gRPC protocol** by calling a defined health check service.
 
 - Used for applications built with gRPC
@@ -3205,6 +3267,7 @@ Performs health checks using **gRPC protocol** by calling a defined health check
 ---
 
 ### tcpSocket
+
 Checks whether a **TCP connection** can be established on a given port.
 
 - Useful for services like databases or custom TCP apps
@@ -3212,6 +3275,7 @@ Checks whether a **TCP connection** can be established on a given port.
 ---
 
 ### exec
+
 Executes a command inside the container.
 
 - Success → Command exits with status **0**
@@ -3222,34 +3286,37 @@ Executes a command inside the container.
 ## Probe Arguments
 
 ### initialDelaySeconds
+
 Time Kubernetes waits **before starting the first probe** after the container starts.
 
 ---
 
 ### periodSeconds
+
 Defines how often (in seconds) Kubernetes performs the **health check**.
 
 ---
 
 ### successThreshold
+
 Minimum number of **consecutive successful checks** required to mark the container as healthy.
 
 ---
 
 ## Summary
 
-| Type       | Description                              | Success Condition        |
-|------------|------------------------------------------|--------------------------|
-| httpGet    | HTTP request to container                | Status 200–399           |
-| grpc       | gRPC health check                        | Healthy response         |
-| tcpSocket  | TCP connection check                     | Connection successful    |
-| exec       | Run command inside container             | Exit code 0              |
+| Type      | Description                  | Success Condition     |
+| --------- | ---------------------------- | --------------------- |
+| httpGet   | HTTP request to container    | Status 200–399        |
+| grpc      | gRPC health check            | Healthy response      |
+| tcpSocket | TCP connection check         | Connection successful |
+| exec      | Run command inside container | Exit code 0           |
 
-| Argument              | Purpose                                      |
-|----------------------|----------------------------------------------|
-| initialDelaySeconds  | Delay before starting probes                 |
-| periodSeconds        | Interval between probe checks                |
-| successThreshold     | Required consecutive successes               |
+| Argument            | Purpose                        |
+| ------------------- | ------------------------------ |
+| initialDelaySeconds | Delay before starting probes   |
+| periodSeconds       | Interval between probe checks  |
+| successThreshold    | Required consecutive successes |
 
 ---
 
@@ -3262,6 +3329,7 @@ Minimum number of **consecutive successful checks** required to mark the contain
 # Kubernetes Liveness Probe
 
 ## Overview
+
 > A **Liveness Probe** is used to check whether a container is **alive and functioning properly** during runtime.
 
 > If the liveness probe fails, Kubernetes will **automatically restart the container**.
@@ -3270,9 +3338,9 @@ Minimum number of **consecutive successful checks** required to mark the contain
 
 ## Key Points
 
-- Detects **deadlocks** or **stuck applications**  
-- Runs continuously throughout the **container lifecycle**  
-- Failure → **Container Restart**  
+- Detects **deadlocks** or **stuck applications**
+- Runs continuously throughout the **container lifecycle**
+- Failure → **Container Restart**
 
 ---
 
@@ -3312,8 +3380,8 @@ spec:
         periodSeconds: 5
         successThreshold: 1
         failureThreshold: 3
-
 ```
+
 ### Kubernates Livensss Probe Figure
 
 ![kubernates-libeness-probe-diagram](./images/liveness-probe.png)
@@ -3323,6 +3391,7 @@ spec:
 # Kubernetes Readiness Probe
 
 ## Overview
+
 A **Readiness Probe** is used to check whether a container is **ready to accept traffic**.
 
 If the readiness probe fails, Kubernetes **does not restart the container**.  
@@ -3332,20 +3401,20 @@ Instead, it **removes the Pod from service endpoints**, so it temporarily stops 
 
 ## Key Points
 
-- Failure does **not kill the Pod**  
-- Pod is **removed from Service endpoints**  
-- Container **continues running**  
+- Failure does **not kill the Pod**
+- Pod is **removed from Service endpoints**
+- Container **continues running**
 - Once healthy again → Pod is **added back to service**
 
 ---
 
 ## Why Use Readiness Probe?
 
-- Prevents sending traffic to **unready applications**  
+- Prevents sending traffic to **unready applications**
 - Useful during:
-  - Application startup  
-  - Configuration loading  
-  - Temporary overload or maintenance  
+  - Application startup
+  - Configuration loading
+  - Temporary overload or maintenance
 
 ---
 
@@ -3371,7 +3440,7 @@ spec:
           port: 80
       readinessProbe:
         exec:
-          command: 
+          command:
             - touch pod-file
             - tail -f /var/log/busybox/error.log
       startupProbe:
@@ -3381,9 +3450,8 @@ spec:
         initialDelaySeconds: 10
         periodSeconds: 5
         successThreshold: 1
-        failureThreshold: 3 
+        failureThreshold: 3
 ```
-
 
 ### Kubernates Readiness Probe figure
 
@@ -3400,9 +3468,11 @@ spec:
 # Kubernetes Pod Resource Requests & Limits - Failure
 
 ## Overview
+
 In Kubernetes, Pods can define **resource requests** and **resource limits** for CPU and memory.
 
 These settings help Kubernetes:
+
 - **Schedule Pods efficiently**
 - **Prevent resource overuse**
 - **Ensure cluster stability**
@@ -3412,6 +3482,7 @@ These settings help Kubernetes:
 ## Requests vs Limits
 
 ### Requests
+
 Requests define the **minimum guaranteed resources** a container needs.
 
 - Used by the **Kubernetes scheduler**
@@ -3419,17 +3490,20 @@ Requests define the **minimum guaranteed resources** a container needs.
 - Ensures the Pod gets at least this amount of resources
 
 **Example**
+
 - CPU request: 500m → Pod needs at least 0.5 CPU
 - Memory request: 256Mi → Pod needs at least 256MB RAM
 
 ---
 
 ### Limits
+
 Limits define the **maximum resources** a container can use.
 
 - Enforced by the **container runtime**
 
 **Behavior**
+
 - CPU limit → Enforced by **throttling**
 - Memory limit → Exceeding causes **OOMKilled (container terminated)**
 
@@ -3449,12 +3523,13 @@ Pod
 ---
 
 ## Scenario
+
 > This example demonstrates what happens when a container **exceeds its memory limit** in Kubernetes.
 
 ```yaml
 apiVersion: v1
 kind: Pod
-metadata: 
+metadata:
   name: pod-stress
   labels:
     env: dev
@@ -3479,17 +3554,18 @@ spec:
 
 ## Pod Status (Tabular View)
 
-| NAME        | READY | STATUS             | RESTARTS | AGE |
-|-------------|-------|--------------------|----------|-----|
-| pod-stress  | 0/1   | OOMKilled          | 1        | 5s  |
-| pod-stress  | 0/1   | CrashLoopBackOff   | 1        | 14s |
-| pod-stress  | 0/1   | OOMKilled          | 2        | 15s |
+| NAME       | READY | STATUS           | RESTARTS | AGE |
+| ---------- | ----- | ---------------- | -------- | --- |
+| pod-stress | 0/1   | OOMKilled        | 1        | 5s  |
+| pod-stress | 0/1   | CrashLoopBackOff | 1        | 14s |
+| pod-stress | 0/1   | OOMKilled        | 2        | 15s |
 
 ---
 
 # Kubernetes Resource Limits – Successful Run Example
 
 ## Scenario
+
 > This example shows a container running **within its memory limits**, so it remains stable and healthy.
 
 ---
@@ -3499,7 +3575,7 @@ spec:
 ```yaml
 apiVersion: v1
 kind: Pod
-metadata: 
+metadata:
   name: pod-stress
   labels:
     env: dev
@@ -3524,14 +3600,501 @@ spec:
 
 ## Pod Status (Tabular View)
 
-| NAME        | READY | STATUS  | RESTARTS | AGE |
-|-------------|-------|---------|----------|-----|
-| pod-stress  | 1/1   | Running | 0        | 3s  |
+| NAME       | READY | STATUS  | RESTARTS | AGE |
+| ---------- | ----- | ------- | -------- | --- |
+| pod-stress | 1/1   | Running | 0        | 3s  |
 
 ---
 
-### 
+### Kubernates-Resource
 
 ![Kubernates-resource-requests-limits](./images/Resource-requests-limits.png)
+
+---
+
+# Kubernetes Annotations
+
+## Definition
+
+**Annotations** in Kubernetes are key–value metadata used to attach **non-identifying information** to objects. They are not used for selection or grouping, but are instead consumed by controllers, tools, or external systems.
+
+---
+
+## Core Concept
+
+Annotations are **passive metadata**—Kubernetes stores them but does not act on them unless a specific component or integration is designed to read and use them.
+
+---
+
+## Key Characteristics
+
+- Store arbitrary non-identifying metadata
+- Not used for object selection (unlike labels)
+- Can include large or complex data (e.g., JSON, configuration details)
+- Primarily used by:
+  - Controllers
+  - CLI tools
+  - External integrations
+
+---
+
+## Common Use Cases
+
+- Storing build/version information
+- Tracking deployment metadata
+- Attaching configuration for external tools (e.g., monitoring, logging)
+- Recording audit or ownership details
+
+---
+
+### Example
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: annotation-pod
+  labels:
+    env: anno-prod
+  annotations:
+    sonar-url: "http://sonar.io/project-key"
+    sonar-enabled: "true"
+spec:
+  containers:
+    - name: anna-con
+      image: jenkins/Jenkins
+```
+
+---
+
+### Kubernates-Annotations
+
+![Kubernates-annotations](./images/k8s-annotations.png)
+
+---
+
+# Kubernetes Namespaces
+
+## Definition
+
+A **Namespace** in Kubernetes is a logical isolation boundary used to organize and separate resources within a cluster.
+
+---
+
+## Resource Scope in Kubernetes
+
+Kubernetes resources are divided into two categories:
+
+### 1. Namespaced Resources
+
+These exist within a specific namespace:
+
+- Pods
+- Services
+- Deployments
+- ReplicaSets
+- ConfigMaps
+- Secrets
+- Ingress
+
+### 2. Cluster-Scoped Resources
+
+These exist at the cluster level and are not tied to any namespace:
+
+- Nodes
+- PersistentVolumes
+
+---
+
+## RBAC and Namespaces
+
+Role-Based Access Control (RBAC) operates across both scopes:
+
+- **Namespaced RBAC**
+  - Roles
+  - RoleBindings
+
+- **Cluster-Wide RBAC**
+  - ClusterRoles
+  - ClusterRoleBindings
+
+---
+
+## Real-World Usage
+
+In practice, namespaces are commonly used to represent different environments, such as:
+
+- dev
+- QA
+- UAT
+- production
+
+This enables teams to run multiple environments within the same cluster while maintaining:
+
+- Isolation
+- Access control
+- Resource management
+
+> ⚠️ **Important:** Namespaces are _not_ environments themselves—they are simply a mechanism for logically separating resources.
+
+---
+
+## Default Kubernetes Namespaces
+
+Kubernetes provides several built-in namespaces:
+
+- **default** – Used for objects with no specified namespace
+- **kube-system** – Contains system components
+- **kube-public** – Publicly accessible resources
+- **kube-node-lease** – Stores node heartbeat data for performance optimization
+
+---
+
+## Working with Namespaces in Kubernetes (Step-by-Step)
+
+This guide demonstrates how Kubernetes namespaces affect resource visibility and how to work with them effectively.
+
+---
+
+### Step 1: Create a Namespace
+
+```bash
+kubectl create namespace prod
+```
+
+---
+
+### Step 2: Create a Pod
+
+```bash
+kubectl apply -f pod.yaml
+```
+
+> If pod.yaml does not specify a namespace, the Pod will be created in the default namespace.
+
+---
+
+### Step 3: Check Pods (Default Behavior)
+
+```bash
+kubectl get po
+```
+
+> Output:
+
+- No resources found in default namespace
+
+> Reason:
+
+- By default, Kubernetes looks for resources in the default namespace, not in prod.
+
+---
+
+### Step 4: Switch to prod Namespace
+
+```bash
+kubectl config set-context --current --namespace=prod
+```
+
+> This sets the current context to use the prod namespace by default.
+
+---
+
+### Step 5: Check Pods Again
+
+```bash
+kubectl get po
+```
+
+> Now, you should be able to see the Pods created in the prod namespace
+
+---
+
+### Alternative: Access Without Switching Namespace
+
+> Instead of switching the namespace, you can directly specify it using the -n flag:
+
+```bash
+kubectl describe pod annotation-pod -n prod
+```
+
+---
+
+### Example
+
+```yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: annotation-pod
+  labels:
+    env: anno-prod
+  namespaces: prod
+  annotations:
+    sonarurl: "http://sonar:io/project-key: enable"
+spec:
+  containers:
+    - name: anna-con
+      image: jenkins/jenkins
+```
+
+### Kubernates - Namespaces
+
+![kubernates-namespaces](./images/k8s-namespaces.png)
+
+---
+
+# Kubernetes Networking Model (Inside a Worker Node)
+
+This document explains how networking works inside a Kubernetes worker node, focusing on how Pods and containers communicate.
+
+---
+
+## Overview
+
+Inside a worker node, Pods run within namespaces, and containers inside those Pods communicate through a structured networking flow. Kubernetes networking ensures seamless communication while maintaining isolation between Pods.
+
+---
+
+## Core Concept
+
+- Containers inside a Pod share the same network namespace
+- Pods have isolated network environments
+- Communication is enabled using virtual networking components
+- Traffic flows through multiple layers before reaching outside the node
+
+---
+
+## Communication Flow (Inside a Worker Node)
+
+### Step 1: Container Inside Pod
+
+- Containers within the same Pod share the **same network namespace**
+- They communicate directly using:
+
+```bash
+localhost
+```
+
+---
+
+> No external networking is required for intra-Pod communication
+
+---
+
+### Step 2: Pod Network Namespace
+
+- > Each Pod gets its own network namespace
+- > Inside the Pod:
+  - A virtual network interface exists (typically eth0)
+  - This interface allows the Pod to communicate with the outside world
+
+---
+
+### Step 3: veth Pair (Virtual Ethernet Pair)
+
+- > Kubernetes creates a veth pair to connect Pod and host:
+  - One end exists inside the Pod → eth0
+  - Other end exists on the host node
+  - These act like a virtual cable connecting Pod ↔ Node
+
+---
+
+### Step 4: Bridge Network
+
+- > The host-side veth connects to a bridge network (e.g., cni0)
+  - This bridge behaves like a virtual switch
+- > Responsibilities:
+  - Connect multiple Pods on the same node
+  - Enable Pod-to-Pod communication within the node
+
+---
+
+### Step 5: Node Network Interface (eth0)
+
+- > The bridge is connected to the node’s physical
+  - interface:
+  - eth0
+- > This interface handles:
+  - Communication outside the node
+  - Traffic to other nodes or external networks
+
+---
+
+# Kubernetes Networking Flow (Mermaid Diagram)
+
+```mermaid
+flowchart TD
+    A[Container (localhost)]
+    B[Pod Network Namespace (eth0)]
+    C[veth Pair]
+    D[Bridge Network (cni0)]
+    E[Node Interface (eth0)]
+    F[Outside World / Other Nodes]
+
+    A --> B --> C --> D --> E --> F
+```
+
+---
+
+# Kubernetes Networking Flows
+
+This document illustrates the correct network communication flow in Kubernetes for:
+
+- Pods on the **same node**
+- Pods on **different nodes**
+
+---
+
+## Pods on (Same Node)
+
+```mermaid
+flowchart LR
+    A[Container]
+    B[Pod (eth0)]
+    C[veth (Pod End)]
+    D[veth (Host End)]
+    E[Bridge (cni0 on Host)]
+    F[veth (Host End)]
+    G[veth (Pod End)]
+    H[Pod (eth0)]
+    I[Container]
+
+    A --> B --> C --> D --> E --> F --> G --> H --> I
+```
+
+---
+
+### Explanation
+
+- > Traffic flow within the same node:
+  - Starts from the source container
+  - Moves to the Pod's network interface (eth0)
+  - Passes through the veth pair (Pod end → Host end)
+  - Reaches the bridge network (cni0) on the node
+  - Crosses another veth pair to the destination Pod
+  - Enters the destination Pod (eth0)
+  - Finally reaches the target container
+
+---
+
+## Pods on (Different Node) (Mermaid)
+
+```mermaid
+flowchart LR
+    A[Pod (eth0)]
+    B[veth]
+    C[Bridge (cni0)]
+    D[Node eth0]
+    E[Network (via CNI)]
+    F[Target Node eth0]
+    G[Bridge]
+    H[veth]
+    I[Pod (eth0)]
+    J[Container]
+
+    A --> B --> C --> D --> E --> F --> G --> H --> I --> J
+```
+
+### Explanation
+
+- > Traffic flow across different nodes:
+  - Starts from the source container
+  - Moves through Pod’s eth0
+  - Enters the veth pair
+  - Reaches the node’s bridge (cni0)
+  - Exits via the node’s physical interface (eth0)
+  - Travels across the network using a CNI plugin (e.g., Calico, Flannel)
+  - Enters the target node's eth0
+  - Passes through the bridge
+  - Moves via veth pair into the destination Pod
+  - Reaches the target container
+
+---
+
+![kubernates-networking-models](./images/k8s-networking-models.png)
+
+---
+
+# Kubernetes Networking Models
+
+Kubernetes networking is designed to enable seamless communication between containers, Pods, Services, and external systems. There are four primary networking communication models.
+
+---
+
+## 1. Container → Container (Same Pod)
+
+- Containers within the same Pod share a **single network namespace**
+- Communication happens directly using:
+
+```bash
+localhost
+```
+
+- > No involvement of:
+  - veth pairs
+  - bridge networks
+  - routing
+
+---
+
+## 2. Pod → Pod Networking
+
+### Same Node
+
+- > Traffic flow:
+  - Container → Pod eth0
+  - Through veth pair (Pod end → Host end)
+  - To bridge (cni0)
+  - Through another veth pair
+  - Into destination Pod eth0
+  - Reaches target container
+
+### Different Nodes
+
+- > Traffic flow:
+  - Container → Pod eth0
+  - → veth → bridge (cni0)
+  - → Node eth0
+  - → Network (via CNI plugin such as Calico or Flannel)
+  - → Target Node eth0
+  - → bridge → veth
+  - → destination Pod eth0
+  - → target container
+
+---
+
+## 3. Pod → Service Networking
+
+### Pod → Service
+
+- > Traffic flow:
+  - Pod sends request to Service Virtual IP (ClusterIP)
+  - kube-proxy applies rules (iptables/IPVS)
+  - Selects a backend Pod
+  - Forwards traffic using Pod-to-Pod networking
+
+### Service → Pod
+
+- > When a Service receives traffic:
+  - kube-proxy selects one of the backend Pods
+  - Routes traffic to it
+  - Uses standard Pod-to-Pod communication path
+
+---
+
+## 4. Internet → Service
+- > External traffic flow:
+  - Enters through Node eth0
+  - Reaches Service exposed via:
+    - NodePort
+    - LoadBalancer
+- kube-proxy routes request
+- Forwards to one of the backend Pods
+- Pod receives traffic through normal Pod networking flow
+
+---
+
+![kubernates-networking-types](./images/k8s-networking-models-types.png)
 
 ---
