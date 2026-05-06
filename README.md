@@ -3980,6 +3980,7 @@ flowchart LR
 
 ## Pods on (Different Node) (Mermaid)
 
+
 ```mermaid
 flowchart LR
 
@@ -4011,24 +4012,25 @@ flowchart LR
     %% Cross-node connection
     E --> F --> G
 
-    %% Styling (AI-like soft colors)
-    style A fill:#E3F2FD,stroke:#1E88E5,stroke-width:2px
-    style K fill:#E3F2FD,stroke:#1E88E5,stroke-width:2px
+    %% High-contrast styling
+    style A fill:#ffffff,stroke:#1E88E5,stroke-width:2px,color:#000000
+    style K fill:#ffffff,stroke:#1E88E5,stroke-width:2px,color:#000000
 
-    style B fill:#E8F5E9,stroke:#43A047,stroke-width:2px
-    style J fill:#E8F5E9,stroke:#43A047,stroke-width:2px
+    style B fill:#ffffff,stroke:#43A047,stroke-width:2px,color:#000000
+    style J fill:#ffffff,stroke:#43A047,stroke-width:2px,color:#000000
 
-    style C fill:#FFF3E0,stroke:#FB8C00,stroke-width:2px
-    style I fill:#FFF3E0,stroke:#FB8C00,stroke-width:2px
+    style C fill:#ffffff,stroke:#FB8C00,stroke-width:2px,color:#000000
+    style I fill:#ffffff,stroke:#FB8C00,stroke-width:2px,color:#000000
 
-    style D fill:#F3E5F5,stroke:#8E24AA,stroke-width:2px
-    style H fill:#F3E5F5,stroke:#8E24AA,stroke-width:2px
+    style D fill:#ffffff,stroke:#8E24AA,stroke-width:2px,color:#000000
+    style H fill:#ffffff,stroke:#8E24AA,stroke-width:2px,color:#000000
 
-    style E fill:#E0F7FA,stroke:#00897B,stroke-width:2px
-    style G fill:#E0F7FA,stroke:#00897B,stroke-width:2px
+    style E fill:#ffffff,stroke:#00897B,stroke-width:2px,color:#000000
+    style G fill:#ffffff,stroke:#00897B,stroke-width:2px,color:#000000
 
-    style F fill:#FCE4EC,stroke:#D81B60,stroke-width:2px
+    style F fill:#ffffff,stroke:#D81B60,stroke-width:2px,color:#000000
 ```
+
 
 ### Explanation
 
