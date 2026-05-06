@@ -3925,14 +3925,23 @@ localhost
 
 ```mermaid
 flowchart TD
-    A[Container (localhost)]
-    B[Pod Network Namespace (eth0)]
+    A[Container localhost]
+    B[Pod Network Namespace eth0]
     C[veth Pair]
-    D[Bridge Network (cni0)]
-    E[Node Interface (eth0)]
-    F[Outside World / Other Nodes]
+    D[Bridge Network cni0]
+    E[Node Interface eth0]
+    F[Outside World or Other Nodes]
 
     A --> B --> C --> D --> E --> F
+
+    %% Clean professional colors (high contrast)
+
+    style A fill:#E3F2FD,stroke:#1565C0,stroke-width:2px,color:#000000
+    style B fill:#E8F5E9,stroke:#2E7D32,stroke-width:2px,color:#000000
+    style C fill:#FFF3E0,stroke:#EF6C00,stroke-width:2px,color:#000000
+    style D fill:#F3E5F5,stroke:#6A1B9A,stroke-width:2px,color:#000000
+    style E fill:#E0F2F1,stroke:#00695C,stroke-width:2px,color:#000000
+    style F fill:#FCE4EC,stroke:#AD1457,stroke-width:2px,color:#000000
 ```
 
 ---
