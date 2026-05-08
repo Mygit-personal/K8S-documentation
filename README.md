@@ -4899,7 +4899,7 @@ spec:
               protocol: TCP
           startupProbe:
             httpGet:
-              path: "/site"
+              path: /
               port: 80
           livenessProbe:
             tcpSocket:
@@ -4907,10 +4907,8 @@ spec:
           readinessProbe:
             exec:
               command:
-                - touch
-                - rp{1..5}.txt
-                - mkdir
-                - rp{1..10}
+                - sh
+                - -c
                 - echo hi
           resources:
             requests:
