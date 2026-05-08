@@ -405,6 +405,43 @@
   - [Match Labels](#match-labels)
   - [Match Expressions](#match-expressions)
 - [Common Operators](#common-operators)
+- [Kubernetes Replicas and Pod Management](#kubernetes-replicas-and-pod-management)
+  - [Why not create Pods manually?](#why-not-create-pods-manually)
+  - [Replica = Pod count](#replica--pod-count)
+- [Replica Controller vs Replica Set in Kubernetes](#replica-controller-vs-replica-set-in-kubernetes)
+- [1. Replica Controller (Old Method)](#1-replica-controller-old-method)
+  - [Limitations (Important for Interview)](#limitations-important-for-interview)
+  - [Correction to Your Point](#correction-to-your-point)
+  - [Order of Creation and Deletion](#order-of-creation-and-deletion)
+  - [Pod.yaml](#podyaml)
+- [2. Replica Set (Modern Approach)](#2-replica-set-modern-approach)
+  - [Features](#features)
+  - [Order of Creation and Deletion](#order-of-creation-and-deletion-1)
+  - [Example Selector](#example-selector)
+    - [Using matchLabels](#using-matchlabels)
+    - [Using matchExpressions](#using-matchexpressions)
+- [ReplicaController vs ReplicaSet](#replicacontroller-vs-replicaset)
+- [Deploying ReplicaSet with EKS and ECR](#deploying-replicaset-with-eks-and-ecr)
+  - [Overview](#overview-6)
+  - [Step 1: Create Server and Login](#step-1-create-server-and-login)
+  - [Step 2: Install AWS CLI](#step-2-install-aws-cli)
+  - [Step 3: Configure AWS CLI](#step-3-configure-aws-cli)
+  - [Step 4: Install kubectl](#step-4-install-kubectl-1)
+  - [Step 5: Install eksctl](#step-5-install-eksctl-1)
+  - [Step 6: Create EKS Cluster](#step-6-create-eks-cluster-1)
+  - [Step 7: Verify Nodes](#step-7-verify-nodes)
+  - [Step 8: Update kubeconfig](#step-8-update-kubeconfig)
+  - [Step 9: Install Docker](#step-9-install-docker)
+  - [Step 10: Create ECR Repository and Push Image](#step-10-create-ecr-repository-and-push-image)
+    - [Login to ECR](#login-to-ecr)
+    - [Pull Docker Image](#pull-docker-image)
+    - [Tag Docker Image](#tag-docker-image)
+    - [Push Docker Image to ECR](#push-docker-image-to-ecr)
+    - [Step 11: Know write the pod.yaml and svc.yaml](#step-11-know-write-the-podyaml-and-svcyaml)
+- [Step 12: Apply Manifest Files](#step-12-apply-manifest-files)
+  - [Create Namespace](#create-namespace)
+  - [Re-Apply Manifest Files](#re-apply-manifest-files)
+- [Step 13: Switch Namespace](#step-13-switch-namespace)
 
 ---
 
@@ -4664,6 +4701,637 @@ matchExpressions:
 | DoesNotExist | Label key does not exist |
 | = | Equal |
 | != | Not equal |
+
+---
+
+# Kubernetes Replicas and Pod Management
+
+In Kubernetes, if I want multiple identical Pods, I don’t create them manually. I use controllers like ReplicaSet or Deployment to manage replicas automatically.
+
+## Why not create Pods manually?
+
+Creating 6 Pods manually means writing 6 manifests, which is not scalable. Instead, we define replicas, and Kubernetes creates and maintains the required number of Pods.
+
+## Replica = Pod count
+
+Example:
+
+```yaml
+replicas: 6
+```
+
+Say:
+
+> This ensures 6 Pods are always running. If any Pod fails, Kubernetes automatically recreates it.
+
+---
+
+# Replica Controller vs Replica Set in Kubernetes
+
+---
+
+# 1. Replica Controller (Old Method)
+
+Say:
+
+> Replica Controller is the older way of managing Pods. It is mostly deprecated and replaced by Replica Set.
+
+---
+
+## Limitations (Important for Interview)
+
+- ❌ Only supports equality-based selectors (`matchLabels`)
+- ❌ Does NOT support set-based selectors (`matchExpressions`)
+- ❌ Not used with modern Deployments
+- ❌ No built-in support for rolling updates or rollbacks
+
+---
+
+## Correction to Your Point
+
+- It’s not about `v1 → v2` versions
+- It’s about application updates (rolling updates)
+
+Say:
+
+> Replica Controller does not support rolling updates or rollback functionality.
+
+---
+
+## Order of Creation and Deletion
+
+Not guaranteed
+
+Say:
+
+> Kubernetes does not guarantee the order of Pod creation or deletion.
+
+Example:
+
+When creating 6 Pods:
+- Each Pod gets a unique name
+- Order of Pod creation is not guaranteed
+- Order of Pod deletion is also not guaranteed
+
+---
+
+## Pod.yaml
+
+```yaml
+apiVersion: v1
+kind: ReplicaSet
+
+metadata:
+  name: pod-rpc
+
+spec:
+  minReadySeconds: 5
+  replicas: 5
+
+  selector:
+    app: dev
+
+  template:
+    metadata:
+      name: my-rpc
+      labels:
+        app: dev
+
+    spec:
+      containers:
+        - name: my-cont-rpc
+          image: nginx
+
+          ports:
+            - containerPort: 80
+```
+
+---
+
+# 2. Replica Set (Modern Approach)
+
+Say:
+
+> Replica Set is the improved version of Replica Controller and is used by Deployments to manage Pods.
+
+---
+
+## Features
+
+- Supports:
+  - `matchLabels` (equality-based selectors)
+  - `matchExpressions` (set-based selectors)
+
+- Ensures desired number of Pods
+- Used internally by Deployments
+- Works with rolling updates (via Deployment)
+
+Example:
+
+- `v1 → v2`
+- `v2 → v1`
+
+---
+
+## Order of Creation and Deletion
+
+Say:
+
+> Kubernetes does not guarantee the order of Pod creation and deletion even in Replica Sets.
+
+---
+
+## Example Selector
+
+### Using matchLabels
+
+```yaml
+selector:
+  matchLabels:
+    app: zomato
+```
+
+---
+
+### Using matchExpressions
+
+```yaml
+selector:
+  matchExpressions:
+    - key: app
+      operator: In
+      values:
+        - zomato
+        - uber
+```
+
+---
+
+```yaml
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  name: rp-pod
+  labels:
+    app: greenapp
+    env: dev
+  namespace: devnamespace
+  annotations: 
+    myecrimage: 
+spec:
+  minReadySeconds: "6s"
+  replicas: 5
+  selector:
+    matchlabels:
+      app: greenapp-pod 
+  template:
+    metadata: 
+      name: rp-pod-level
+      labels:
+        app: greenapp-pod
+    spec:
+      containers:
+        - name: greenimageapp
+          image:
+          ports:
+            - name: greenapp-port
+              containerPort: 80
+              protocol: TCP
+          startupProbe:
+            httpGet:
+              path: "/site"
+              port: 80
+          livenessProbe:
+            tcpSocket:
+              port: 80
+          readinessProbe:
+            exec:
+              command:
+                - touch
+                - rp{1..5}.txt
+                - mkdir
+                - rp{1..10}
+                - echo hi
+          resources:
+            requests:
+              cpu: 100M
+              memory: 150Mi
+            limits:
+              cpu: 150M
+              memory: 200Mi
+
+```
+
+---
+
+- > In the above file selector inside the labels and template  metadata inside the labels should be same
+
+---
+
+# ReplicaController vs ReplicaSet
+
+| Feature | ReplicaController | ReplicaSet |
+|---|---|---|
+| Definition | Older controller to maintain desired number of Pods | Newer, enhanced version of ReplicaController |
+| Current Usage | ❌ Deprecated / rarely used | ✅ Widely used (via Deployment) |
+| Selector Support | Only equality-based (`key=value`) | Supports equality + set-based (`In`, `NotIn`, `Exists`) |
+| `matchExpressions` | ❌ Not supported | ✅ Supported |
+| Rolling Updates | ❌ Not supported | ⚠️ Supported via Deployment, not directly |
+| Rollback (Undo) | ❌ Not supported | ⚠️ Supported via Deployment |
+| Integration with Deployment | ❌ Not supported | ✅ Fully supported |
+| Flexibility | Limited | More flexible and powerful |
+| Real-world Usage | Almost obsolete | Standard practice |
+| API Version | `v1` (core API) | `apps/v1` |
+| Pod Management | Maintains replica count | Maintains replica count (same as RC but improved) |
+
+---
+
+# Deploying ReplicaSet with EKS and ECR
+
+## Overview
+
+In this project:
+
+- I will create a Pod using ReplicaSet with an EKS Cluster
+- Push my own Docker image to ECR
+- Create a Service of type `LoadBalancer`
+- Define everything inside manifest files
+
+---
+
+## Step 1: Create Server and Login
+
+Create an EC2 Ubuntu Server.
+
+Login into the server using SSH:
+
+```bash
+ssh ubuntu@<IP-ADDRESS>
+```
+
+Example:
+
+```bash
+ssh ubuntu@13.233.xx.xx
+```
+
+---
+
+## Step 2: Install AWS CLI
+
+Install AWS CLI from the official AWS documentation.
+
+Update packages:
+
+```bash
+sudo apt update
+```
+
+Download AWS CLI:
+
+```bash
+curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+```
+
+Install unzip package:
+
+```bash
+sudo apt install unzip -y
+```
+
+Unzip the installer:
+
+```bash
+unzip awscliv2.zip
+```
+
+Install AWS CLI:
+
+```bash
+sudo ./aws/install
+```
+
+Verify installation:
+
+```bash
+aws --version
+```
+---
+
+## Step 3: Configure AWS CLI
+
+> Install AWS CLI using official documentation
+> Create an IAM user
+> Save:
+
+- > Access Key
+- > Secret Key
+  > Configure AWS CLI
+
+```bash
+aws configure
+```
+
+> Enter:
+
+- > Access Key
+- > Secret Key
+- > Region (e.g., ap-south-1)
+
+---
+
+## Step 4: Install kubectl
+
+Install kubectl from the official Kubernetes documentation.
+
+```bash
+curl -LO https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl
+
+sudo chmod +x kubectl
+
+sudo mv kubectl /usr/local/bin
+
+kubectl version --client
+```
+
+---
+
+## Step 5: Install eksctl
+
+```bash
+# for ARM systems, set ARCH to: arm64, armv6 or armv7
+
+ARCH=amd64
+
+PLATFORM=$(uname -s)_$ARCH
+
+curl -sLO "https://github.com/eksctl-io/eksctl/releases/latest/download/eksctl_$PLATFORM.tar.gz"
+
+# (Optional) Verify checksum
+
+curl -sL "https://github.com/eksctl-io/eksctl/releases/latest/download/eksctl_checksums.txt" | grep $PLATFORM | sha256sum --check
+
+tar -xzf eksctl_$PLATFORM.tar.gz -C /tmp && rm eksctl_$PLATFORM.tar.gz
+
+sudo install -m 0755 /tmp/eksctl /usr/local/bin && rm /tmp/eksctl
+```
+
+Verify installation:
+
+```bash
+eksctl version
+```
+
+---
+
+## Step 6: Create EKS Cluster
+
+Create the EKS Cluster using the below command.
+
+> Note: Cluster creation may take around 10–15 minutes.
+
+```bash
+eksctl create cluster \
+  --name mycluster \
+  --region ap-south-1 \
+  --node-type t3.micro \
+  --nodes 2
+```
+
+---
+
+## Step 7: Verify Nodes
+
+After the cluster is created, verify the worker nodes.
+
+```bash
+kubectl get nodes
+```
+
+or
+
+```bash
+kubectl get no
+```
+
+---
+
+## Step 8: Update kubeconfig
+
+Configure kubectl to communicate with the EKS Cluster.
+
+```bash
+aws eks --region ap-south-1 update-kubeconfig --name <cluster-name>
+```
+
+Example:
+
+```bash
+aws eks --region ap-south-1 update-kubeconfig --name mycluster
+```
+
+---
+
+## Step 9: Install Docker
+
+Install Docker from the official Docker documentation.
+
+Update packages:
+
+```bash
+sudo apt update
+```
+
+Install Docker:
+
+```bash
+sudo apt install docker.io -y
+```
+
+Start Docker:
+
+```bash
+sudo systemctl start docker
+```
+
+Enable Docker:
+
+```bash
+sudo systemctl enable docker
+```
+
+Verify Docker:
+
+```bash
+docker --version
+```
+
+---
+
+## Step 10: Create ECR Repository and Push Image
+
+Create a repository in ECR from the AWS Console.
+
+Then follow the below commands.
+
+---
+
+### Login to ECR
+
+```bash
+aws ecr get-login-password --region ap-south-1 | docker login --username AWS --password-stdin 984912521466.dkr.ecr.ap-south-1.amazonaws.com
+```
+
+---
+
+### Pull Docker Image
+
+```bash
+docker pull nikhilmarati97/mydockerimages:latest
+```
+
+---
+
+### Tag Docker Image
+
+```bash
+docker tag nikhilmarati97/mydockerimages:latest 984912521466.dkr.ecr.ap-south-1.amazonaws.com/dev/red-app:latest
+```
+
+---
+
+### Push Docker Image to ECR
+
+```bash
+docker push 984912521466.dkr.ecr.ap-south-1.amazonaws.com/dev/red-app:latest
+```
+
+---
+
+### Step 11: Know write the pod.yaml and svc.yaml
+
+- > pod.yaml
+
+```yaml
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  name: rp-pod
+  labels:
+    app: greenapp
+    env: dev
+  namespace: devnamespace
+  annotations: 
+    myecrimage: "984912521466.dkr.ecr.ap-south-1.amazonaws.com/dev/app/greenpage"
+spec:
+  minReadySeconds: 6
+  replicas: 5
+  selector:
+    matchLabels:
+      app: greenapp-pod 
+  template:
+    metadata: 
+      name: rp-pod-level
+      labels:
+        app: greenapp-pod
+    spec:
+      containers:
+        - name: greenimageapp
+          image: "984912521466.dkr.ecr.ap-south-1.amazonaws.com/dev/app/greenpage:latest"
+          ports:
+            - name: greenapp-port
+              containerPort: 80
+              protocol: TCP
+          startupProbe:
+            httpGet:
+              path: /
+              port: 80
+          livenessProbe:
+            tcpSocket:
+              port: 80
+          readinessProbe:
+            exec:
+              command:
+                - sh
+                - -c
+                - echo hi        
+          resources:
+            requests:
+              cpu: 100M
+              memory: 150Mi
+            limits:
+              cpu: 150M
+              memory: 200Mi
+```
+
+- > svc.yaml
+
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: green
+spec:
+  type: LoadBalancer
+  selector:
+    app: greenapp
+  ports:
+    - port: 80
+      protocol: TCP
+
+```
+
+---
+
+# Step 12: Apply Manifest Files
+
+After pushing the Docker image to ECR, apply the Kubernetes manifest files.
+
+```bash
+kubectl apply -f .
+```
+
+While applying the manifest files, Kubernetes may throw an error if the namespace does not exist.
+
+Example Error:
+
+```bash
+Error from server (NotFound): namespaces "devnamespace" not found
+```
+
+---
+
+## Create Namespace
+
+Create the namespace using the below command:
+
+```bash
+kubectl create ns devnamespace
+```
+
+---
+
+## Re-Apply Manifest Files
+
+```bash
+kubectl apply -f .
+```
+
+---
+
+# Step 13: Switch Namespace
+
+To switch the current namespace context:
+
+```bash
+kubectl config set-context --current --namespace devnamespace
+```
+
+Verify the current namespace:
+
+```bash
+kubectl config view --minify | grep namespace:
+```
 
 ---
 
