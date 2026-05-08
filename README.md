@@ -413,7 +413,6 @@
   - [Limitations (Important for Interview)](#limitations-important-for-interview)
   - [Correction to Your Point](#correction-to-your-point)
   - [Order of Creation and Deletion](#order-of-creation-and-deletion)
-  - [Pod.yaml](#podyaml)
 - [2. Replica Set (Modern Approach)](#2-replica-set-modern-approach)
   - [Features](#features)
   - [Order of Creation and Deletion](#order-of-creation-and-deletion-1)
@@ -442,6 +441,7 @@
   - [Create Namespace](#create-namespace)
   - [Re-Apply Manifest Files](#re-apply-manifest-files)
 - [Step 13: Switch Namespace](#step-13-switch-namespace)
+- [Kubernates Replica Types](#kubernates-replica-types)
 
 ---
 
@@ -4775,7 +4775,7 @@ When creating 6 Pods:
 
 ---
 
-## Pod.yaml
+<!-- ## Pod.yaml
 
 ```yaml
 apiVersion: v1
@@ -4806,7 +4806,7 @@ spec:
             - containerPort: 80
 ```
 
----
+--- -->
 
 # 2. Replica Set (Modern Approach)
 
@@ -5332,6 +5332,12 @@ Verify the current namespace:
 ```bash
 kubectl config view --minify | grep namespace:
 ```
+
+---
+
+# Kubernates Replica Types
+
+![Kubernates Replica Types](./images/Replicas-types.png)
 
 ---
 
