@@ -442,6 +442,78 @@
   - [Re-Apply Manifest Files](#re-apply-manifest-files)
 - [Step 13: Switch Namespace](#step-13-switch-namespace)
 - [Kubernates Replica Types](#kubernates-replica-types)
+- [Kubernetes Deployment Strategies \& Deployment Concepts](#kubernetes-deployment-strategies--deployment-concepts)
+- [Why Do We Use Deployment When ReplicaSet Already Exists?](#why-do-we-use-deployment-when-replicaset-already-exists)
+  - [ReplicaSet](#replicaset)
+    - [Example](#example-5)
+  - [Features of ReplicaSet](#features-of-replicaset)
+  - [Limitations of ReplicaSet](#limitations-of-replicaset)
+- [What is Deployment in Kubernetes?](#what-is-deployment-in-kubernetes)
+- [Advantages of Deployment Over ReplicaSet](#advantages-of-deployment-over-replicaset)
+- [Real-Time Example](#real-time-example)
+- [Kubernetes Deployment Strategies (Interview Terminology)](#kubernetes-deployment-strategies-interview-terminology)
+- [1. Recreate Strategy](#1-recreate-strategy)
+  - [Interview Definition](#interview-definition)
+  - [Real-Time Example](#real-time-example-1)
+  - [Flow](#flow)
+  - [Characteristics](#characteristics)
+  - [Usage](#usage)
+- [2. Rolling Update Strategy](#2-rolling-update-strategy)
+  - [Interview Definition](#interview-definition-1)
+  - [Real-Time Example](#real-time-example-2)
+  - [Flow](#flow-1)
+- [What is Rollout?](#what-is-rollout)
+  - [Interview Definition](#interview-definition-2)
+- [What is Rollback?](#what-is-rollback)
+  - [Interview Definition](#interview-definition-3)
+- [Zero-Downtime Support](#zero-downtime-support)
+- [maxSurge](#maxsurge)
+  - [Interview Definition](#interview-definition-4)
+- [maxUnavailable](#maxunavailable)
+  - [Interview Definition](#interview-definition-5)
+- [Pod Replacement Example](#pod-replacement-example)
+- [50% Example](#50-example)
+- [Advantages of Rolling Update](#advantages-of-rolling-update)
+- [Kubernates rolling update - maxsurge \& maxunavailable](#kubernates-rolling-update---maxsurge--maxunavailable)
+- [3. Blue-Green Deployment](#3-blue-green-deployment)
+  - [Interview Definition](#interview-definition-6)
+- [Real-Time Example](#real-time-example-3)
+- [Process](#process)
+- [Traffic Flow](#traffic-flow)
+- [Rollback](#rollback)
+- [Features](#features-1)
+- [Disadvantages](#disadvantages)
+- [4. Canary Deployment](#4-canary-deployment)
+  - [Interview Definition](#interview-definition-7)
+- [Real-Time Example](#real-time-example-4)
+- [Step 1](#step-1)
+- [Step 2](#step-2)
+- [Step 3](#step-3)
+- [Rollback](#rollback-1)
+- [Features](#features-2)
+- [deployment file](#deployment-file)
+- [service file](#service-file)
+- [Final Interview Summary](#final-interview-summary)
+- [One-Line Interview Answer](#one-line-interview-answer)
+- [Overview in deployemnet staragy](#overview-in-deployemnet-staragy)
+- [Kubernates deployment strategies](#kubernates-deployment-strategies)
+- [Kubernetes Deployment Setup Using eksctl](#kubernetes-deployment-setup-using-eksctl)
+  - [Step 1: Create EC2 Server](#step-1-create-ec2-server)
+  - [Step 2: Update Server](#step-2-update-server)
+  - [Step 3: Install AWS CLI](#step-3-install-aws-cli-2)
+  - [Step 4: Install kubectl](#step-4-install-kubectl-2)
+  - [Step 5: Install eksctl](#step-5-install-eksctl-2)
+- [Step 6: Create EKS Cluster](#step-6-create-eks-cluster-2)
+- [Step 7: Create Deployment YAML](#step-7-create-deployment-yaml)
+  - [pod.yaml](#podyaml)
+- [Step 8: Create Service YAML](#step-8-create-service-yaml)
+  - [svc.yaml](#svcyaml)
+- [Step 9: Create Namespace](#step-9-create-namespace)
+- [Step 10: Switch Namespace](#step-10-switch-namespace)
+- [Step 11: Deploy Application](#step-11-deploy-application)
+- [Step 12: Verify Resources](#step-12-verify-resources)
+- [Step 13: Access Application](#step-13-access-application)
+- [Features Used in This Deployment](#features-used-in-this-deployment)
 
 ---
 
@@ -3826,7 +3898,7 @@ OOMKilled occurs when a container exceeds its memory limit configured in Kuberne
 6. Identify root cause
 7. Increase memory or optimize application
 
---- 
+---
 
 # Kubernates-OOMKill-Troubleshoot-Steps
 
@@ -4429,6 +4501,7 @@ localhost
 ---
 
 ## 4. Internet → Service
+
 - > External traffic flow:
   - Enters through Node eth0
   - Reaches Service exposed via:
@@ -4440,7 +4513,7 @@ localhost
 
 ---
 
-## Kubernates Networking Models Types 
+## Kubernates Networking Models Types
 
 ![kubernates-networking-types](./images/k8s-networking-models-types.png)
 
@@ -4540,7 +4613,6 @@ matchExpressions:
     values:
       - zomato
       - uber
-
 ```
 
 Supported operators:
@@ -4551,7 +4623,6 @@ Supported operators:
 - DoesNotExist
 
 ---
-
 
 ## 1. In Operator
 
@@ -4693,14 +4764,14 @@ matchExpressions:
 
 # Common Operators
 
-| Operator | Meaning |
-|-----------|---------|
-| In | Value exists in list |
-| NotIn | Value does not exist in list |
-| Exists | Label key exists |
-| DoesNotExist | Label key does not exist |
-| = | Equal |
-| != | Not equal |
+| Operator     | Meaning                      |
+| ------------ | ---------------------------- |
+| In           | Value exists in list         |
+| NotIn        | Value does not exist in list |
+| Exists       | Label key exists             |
+| DoesNotExist | Label key does not exist     |
+| =            | Equal                        |
+| !=           | Not equal                    |
 
 ---
 
@@ -4769,6 +4840,7 @@ Say:
 Example:
 
 When creating 6 Pods:
+
 - Each Pod gets a unique name
 - Order of Pod creation is not guaranteed
 - Order of Pod deletion is also not guaranteed
@@ -4876,16 +4948,16 @@ metadata:
     app: greenapp
     env: dev
   namespace: devnamespace
-  annotations: 
-    myecrimage: 
+  annotations:
+    myecrimage:
 spec:
   minReadySeconds: "6s"
   replicas: 5
   selector:
     matchlabels:
-      app: greenapp-pod 
+      app: greenapp-pod
   template:
-    metadata: 
+    metadata:
       name: rp-pod-level
       labels:
         app: greenapp-pod
@@ -4917,7 +4989,6 @@ spec:
             limits:
               cpu: 150M
               memory: 200Mi
-
 ```
 
 ---
@@ -4928,19 +4999,19 @@ spec:
 
 # ReplicaController vs ReplicaSet
 
-| Feature | ReplicaController | ReplicaSet |
-|---|---|---|
-| Definition | Older controller to maintain desired number of Pods | Newer, enhanced version of ReplicaController |
-| Current Usage | ❌ Deprecated / rarely used | ✅ Widely used (via Deployment) |
-| Selector Support | Only equality-based (`key=value`) | Supports equality + set-based (`In`, `NotIn`, `Exists`) |
-| `matchExpressions` | ❌ Not supported | ✅ Supported |
-| Rolling Updates | ❌ Not supported | ⚠️ Supported via Deployment, not directly |
-| Rollback (Undo) | ❌ Not supported | ⚠️ Supported via Deployment |
-| Integration with Deployment | ❌ Not supported | ✅ Fully supported |
-| Flexibility | Limited | More flexible and powerful |
-| Real-world Usage | Almost obsolete | Standard practice |
-| API Version | `v1` (core API) | `apps/v1` |
-| Pod Management | Maintains replica count | Maintains replica count (same as RC but improved) |
+| Feature                     | ReplicaController                                   | ReplicaSet                                              |
+| --------------------------- | --------------------------------------------------- | ------------------------------------------------------- |
+| Definition                  | Older controller to maintain desired number of Pods | Newer, enhanced version of ReplicaController            |
+| Current Usage               | ❌ Deprecated / rarely used                         | ✅ Widely used (via Deployment)                         |
+| Selector Support            | Only equality-based (`key=value`)                   | Supports equality + set-based (`In`, `NotIn`, `Exists`) |
+| `matchExpressions`          | ❌ Not supported                                    | ✅ Supported                                            |
+| Rolling Updates             | ❌ Not supported                                    | ⚠️ Supported via Deployment, not directly               |
+| Rollback (Undo)             | ❌ Not supported                                    | ⚠️ Supported via Deployment                             |
+| Integration with Deployment | ❌ Not supported                                    | ✅ Fully supported                                      |
+| Flexibility                 | Limited                                             | More flexible and powerful                              |
+| Real-world Usage            | Almost obsolete                                     | Standard practice                                       |
+| API Version                 | `v1` (core API)                                     | `apps/v1`                                               |
+| Pod Management              | Maintains replica count                             | Maintains replica count (same as RC but improved)       |
 
 ---
 
@@ -5014,6 +5085,7 @@ Verify installation:
 ```bash
 aws --version
 ```
+
 ---
 
 ## Step 3: Configure AWS CLI
@@ -5219,16 +5291,16 @@ metadata:
     app: greenapp
     env: dev
   namespace: devnamespace
-  annotations: 
+  annotations:
     myecrimage: "984912521466.dkr.ecr.ap-south-1.amazonaws.com/dev/app/greenpage"
 spec:
   minReadySeconds: 6
   replicas: 5
   selector:
     matchLabels:
-      app: greenapp-pod 
+      app: greenapp-pod
   template:
-    metadata: 
+    metadata:
       name: rp-pod-level
       labels:
         app: greenapp-pod
@@ -5252,7 +5324,7 @@ spec:
               command:
                 - sh
                 - -c
-                - echo hi        
+                - echo hi
           resources:
             requests:
               cpu: 100M
@@ -5276,7 +5348,6 @@ spec:
   ports:
     - port: 80
       protocol: TCP
-
 ```
 
 ---
@@ -5339,3 +5410,858 @@ kubectl config view --minify | grep namespace:
 
 ---
 
+# Kubernetes Deployment Strategies & Deployment Concepts
+
+# Why Do We Use Deployment When ReplicaSet Already Exists?
+
+## ReplicaSet
+
+ReplicaSet is responsible for maintaining the desired number of Pod replicas in Kubernetes.
+
+### Example
+
+- If we define 3 replicas and one Pod fails, ReplicaSet automatically creates a new Pod.
+- This provides:
+  - Self-healing
+  - Scaling capabilities
+
+## Features of ReplicaSet
+
+- Maintains desired number of Pods
+- Self-healing
+- Scaling support
+- Supports:
+  - Set-based selectors
+  - Equality-based selectors
+
+## Limitations of ReplicaSet
+
+ReplicaSet does not provide:
+
+- Rollout support
+- Rollback mechanism
+- Deployment strategies
+- Version management
+- Zero-downtime deployments
+
+To overcome these limitations, Kubernetes introduced **Deployment**.
+
+---
+
+# What is Deployment in Kubernetes?
+
+Deployment is a higher-level Kubernetes object used to manage:
+
+- Application releases
+- Application updates
+- Scaling
+- Rollouts and rollbacks
+
+Deployment internally manages ReplicaSets and Pods.
+
+---
+
+# Advantages of Deployment Over ReplicaSet
+
+Deployment provides:
+
+- Rolling updates
+- Rollbacks
+- Version control
+- Zero-downtime deployments
+- Deployment strategies
+- Desired state management
+- Self-healing
+- Easy scaling
+
+Because of these features, Deployments are preferred in production environments.
+
+---
+
+# Real-Time Example
+
+Consider an e-commerce application with:
+
+- Order Service
+- Cart Service
+- Payment Service
+
+When the application is released for end users, it is managed using a Deployment.
+
+Example:
+
+```text
+V1 → V2
+```
+
+Deployment helps move the application from the old version to the new version without affecting users.
+
+---
+
+# Kubernetes Deployment Strategies (Interview Terminology)
+
+# 1. Recreate Strategy
+
+## Interview Definition
+
+> In Recreate strategy, the entire old version of the application is stopped first, and then the new version is deployed.
+
+---
+
+## Real-Time Example
+
+Suppose we have a microservices application:
+
+- Order Service
+- Cart Service
+- Payment Service
+
+Each service has multiple Pods running.
+
+When moving from:
+
+```text
+V1 → V2
+```
+
+Kubernetes:
+
+1. Stops all old Pods
+2. Removes the old version completely
+3. Creates Pods with the new version
+
+---
+
+## Flow
+
+```text
+Delete All V1 Pods → Create All V2 Pods
+```
+
+---
+
+## Characteristics
+
+- Entire application is temporarily unavailable
+- Does not support zero-downtime deployment
+- Simple deployment process
+
+---
+
+## Usage
+
+Mostly used in:
+
+- Development environments
+- Testing environments
+
+---
+
+# 2. Rolling Update Strategy
+
+## Interview Definition
+
+> Rolling Update is the default Kubernetes deployment strategy where new Pods are created gradually and old Pods are removed gradually without affecting application availability.
+
+---
+
+## Real-Time Example
+
+Suppose:
+
+- Current version = V1
+- New version = V2
+
+Application has multiple Pods.
+
+Kubernetes performs:
+
+1. Create one new Pod with V2
+2. Delete one old Pod with V1
+
+This process continues until all Pods are updated.
+
+---
+
+## Flow
+
+```text
+Create 1 New Pod → Delete 1 Old Pod
+```
+
+---
+
+# What is Rollout?
+
+## Interview Definition
+
+> Rollout means updating the application from the old version to the new version.
+
+Example:
+
+```text
+V1 → V2
+```
+
+---
+
+# What is Rollback?
+
+## Interview Definition
+
+> Rollback means reverting the application back to the previous stable version if the new version fails.
+
+Example:
+
+```text
+V2 → V1
+```
+
+---
+
+# Zero-Downtime Support
+
+Rolling Update maintains:
+
+- Zero downtime
+- High availability
+
+Users can continue accessing the application during deployment.
+
+---
+
+# maxSurge
+
+## Interview Definition
+
+> maxSurge defines how many extra Pods can be created temporarily during deployment.
+
+Example:
+
+```yaml
+maxSurge: 1
+```
+
+Means:
+
+- Kubernetes can create 1 additional Pod temporarily.
+
+---
+
+# maxUnavailable
+
+## Interview Definition
+
+> maxUnavailable defines how many Pods can be unavailable during deployment.
+
+Example:
+
+```yaml
+maxUnavailable: 1
+```
+
+Means:
+
+- Only 1 Pod can be unavailable at a time.
+
+---
+
+# Pod Replacement Example
+
+Suppose:
+
+- Total Pods = 4
+- maxSurge = 25%
+- maxUnavailable = 25%
+
+25% of 4 = 1 Pod
+
+Kubernetes will:
+
+- Create 1 new Pod
+- Delete 1 old Pod
+
+Again:
+
+- Create 1 new Pod
+- Delete 1 old Pod
+
+This continues until deployment completes.
+
+---
+
+# 50% Example
+
+If:
+
+```text
+maxSurge: 50%
+maxUnavailable: 50%
+```
+
+Then:
+
+- 2 new Pods are created
+- 2 old Pods are deleted
+
+---
+
+# Advantages of Rolling Update
+
+- Zero downtime
+- Gradual deployment
+- Supports rollout
+- Supports rollback
+- High availability
+
+---
+
+# Kubernates rolling update - maxsurge & maxunavailable
+
+![Kubernates rolling update](./images/maxsurge-maxunavailable.png)
+
+# 3. Blue-Green Deployment
+
+## Interview Definition
+
+> Blue-Green deployment uses two separate environments: one for the current production version and another for the new version.
+
+---
+
+# Real-Time Example
+
+Suppose:
+
+- Zomato V1 is running in Blue Environment
+- Customers are actively using Blue Environment
+
+Now:
+
+- New version (V2) is deployed in Green Environment
+- Green Environment is prepared and tested separately
+
+---
+
+# Process
+
+1. Users access Blue Environment
+2. Green Environment is deployed with new version
+3. Traffic still goes to Blue Environment
+4. Once Green Environment is ready:
+   - Traffic is switched from Blue → Green
+
+---
+
+# Traffic Flow
+
+```text
+Users → Blue Environment (V1)
+
+After Switch:
+
+Users → Green Environment (V2)
+```
+
+---
+
+# Rollback
+
+If Green Environment fails:
+
+- Traffic is immediately redirected back to Blue Environment
+
+If Green works successfully:
+
+- Blue Environment can be removed
+
+---
+
+# Features
+
+- Supports zero downtime
+- Supports rollout
+- Supports rollback
+- Fast recovery
+
+---
+
+# Disadvantages
+
+- Expensive
+- Requires duplicate infrastructure
+- Requires two environments/clusters:
+  - Blue
+  - Green
+
+---
+
+# 4. Canary Deployment
+
+## Interview Definition
+
+> Canary deployment gradually shifts a small percentage of traffic from the old version to the new version.
+
+---
+
+# Real-Time Example
+
+Suppose:
+
+- Customers are using Zomato V1
+- V1 has multiple Pods
+
+Now:
+
+- New version Zomato V2 is deployed
+
+Initially:
+
+```text
+100% Traffic → V1
+```
+
+---
+
+# Step 1
+
+Move 5% traffic to V2:
+
+```text
+95% → V1
+5%  → V2
+```
+
+If any issue occurs:
+
+- Traffic is redirected back to V1
+
+---
+
+# Step 2
+
+Move another 5% traffic:
+
+```text
+90% → V1
+10% → V2
+```
+
+---
+
+# Step 3
+
+Traffic gradually moves:
+
+```text
+80% → V2
+20% → V1
+```
+
+Then:
+
+```text
+90% → V2
+10% → V1
+```
+
+Finally:
+
+```text
+100% → V2
+```
+
+---
+
+# Rollback
+
+If any issue is detected:
+
+- Traffic is immediately redirected back to V1
+
+---
+
+# Features
+
+- Zero downtime
+- Gradual traffic shifting
+- Reduced deployment risk
+- Better monitoring
+- Supports rollout
+- Supports rollback
+
+---
+
+# deployment file
+
+```bash
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pod-dep
+spec:
+  minReadySeconds: 5
+  replicas: 5
+  selector:
+    matchLabels:
+      app: red-app
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+  template:
+    metadata:
+      name: my-red-pod
+      labels:
+        app: red-app
+    spec:
+      containers:
+        - name: red-con
+          image: opsbynikhil/redpage:REDPAGE
+          ports:
+            - containerPort: 80
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 80
+            successThreshold: 1
+            failureThreshold: 5
+      resources:
+        requests:
+          cpu: 250m
+          memory: 64Mi
+        limits:
+          cpu: 450m
+          memory: 128Mi
+```
+
+---
+
+# service file
+
+```bash
+apiVersion: v1
+kind: Service
+metadata:
+  name: svc-deployment
+spec:
+  type: NodePort
+  selector:
+    app: red-app
+  ports:
+    - name: node
+      port: 80
+      nodePort: 31234
+
+```
+
+# Final Interview Summary
+
+| Strategy       | Downtime | Rollback | Cost   | Usage                 |
+| -------------- | -------- | -------- | ------ | --------------------- |
+| Recreate       | Yes      | Limited  | Low    | Dev/Test              |
+| Rolling Update | No       | Yes      | Medium | Default Production    |
+| Blue-Green     | No       | Fast     | High   | Critical Applications |
+| Canary         | No       | Yes      | Medium | Safer Gradual Release |
+
+---
+
+# One-Line Interview Answer
+
+> Deployment strategies define how Kubernetes upgrades applications from the old version to the new version while handling traffic management, downtime, rollout, and rollback operations.
+
+---
+
+# Overview in deployemnet staragy
+
+- > In Kubernetes, the default deployment strategy is Rolling Update. It enables zero-downtime deployments by gradually replacing old version pods with new version pods instead of shutting down the entire application at once.
+
+- > During the rollout process, Kubernetes ReplicaSets maintain the desired number of pod replicas to ensure application availability and stability.
+
+- > Rolling Update behavior is controlled using two important parameters: maxSurge and maxUnavailable.
+
+- > maxSurge defines how many additional pods can be created temporarily during deployment, while maxUnavailable specifies how many existing pods can be unavailable during the update process.
+
+- > For example, if the application has 4 replicas and maxSurge is set to 25%, Kubernetes can create 1 extra pod during deployment. Similarly, if maxUnavailable is 25%, only 1 pod can be unavailable at a time. This approach ensures continuous application availability with minimal service disruption.
+
+- > Kubernetes supports multiple deployment strategies such as Recreate, Rolling Update, Blue-Green, Canary, A/B Testing, Shadow Deployment, and Controlled Rollouts. Among these, Rolling Update is the most commonly used strategy because it provides seamless upgrades with high availability and easy rollback support.
+
+---
+
+# Kubernates deployment strategies
+
+![Kubernates deployment strategies](./images/Deployment-strategy.png)
+
+---
+
+# Kubernetes Deployment Setup Using eksctl
+
+## Step 1: Create EC2 Server
+
+Create an Ubuntu server and login using SSH:
+
+```bash
+ssh ubuntu@<Public-IP>
+```
+
+---
+
+## Step 2: Update Server
+
+```bash
+sudo apt update
+sudo apt install unzip -y
+```
+
+---
+
+## Step 3: Install AWS CLI
+
+Install AWS CLI from the official AWS documentation.
+
+After installation, configure AWS credentials:
+
+```bash
+aws configure
+```
+
+Provide:
+- AWS Access Key
+- AWS Secret Key
+- Region Name
+- Output Format
+
+---
+
+## Step 4: Install kubectl
+
+Install `kubectl` from the official Kubernetes documentation.
+
+Verify installation:
+
+```bash
+kubectl version --client
+```
+
+---
+
+## Step 5: Install eksctl
+
+Install `eksctl` from the official EKS documentation.
+
+Verify installation:
+
+```bash
+eksctl version
+```
+
+---
+
+# Step 6: Create EKS Cluster
+
+Run the following command:
+
+```bash
+eksctl create cluster \
+ --name mycluster \
+ --region ap-south-1 \
+ --node-type t3.micro \
+ --nodes 2
+```
+
+This command creates:
+- EKS Cluster
+- 2 Worker Nodes
+- Networking resources automatically
+
+---
+
+# Step 7: Create Deployment YAML
+
+## pod.yaml
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rp-pod
+  labels:
+    app: greenapp
+    env: dev
+  namespace: devnamespace
+  annotations:
+    myecrimage: "984912521466.dkr.ecr.ap-south-1.amazonaws.com/dev/app/greenpage"
+
+spec:
+  minReadySeconds: 6
+  replicas: 5
+
+  selector:
+    matchExpressions:
+      - key: web
+        operator: In
+        values:
+          - greenapp-pod
+
+      - key: env
+        operator: NotIn
+        values:
+          - dev
+
+      - key: frontend
+        operator: Exists
+
+  strategy:
+    type: RollingUpdate
+
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+
+  template:
+    metadata:
+      name: rp-pod-level
+
+      labels:
+        web: greenapp-pod
+        env: prod
+        frontend: app
+
+    spec:
+      containers:
+        - name: greenimageapp
+          image: "nikhilmarati97/my-images:latest"
+
+          ports:
+            - name: greenapp-port
+              containerPort: 80
+              protocol: TCP
+
+          startupProbe:
+            httpGet:
+              path: "/site"
+              port: 80
+
+          livenessProbe:
+            tcpSocket:
+              port: 80
+
+          readinessProbe:
+            exec:
+              command:
+                - echo
+                - hi
+
+          resources:
+            requests:
+              cpu: 100m
+              memory: 50Mi
+
+            limits:
+              cpu: 300m
+              memory: 100Mi
+```
+
+---
+
+# Step 8: Create Service YAML
+
+## svc.yaml
+
+```yaml
+apiVersion: v1
+kind: Service
+
+metadata:
+  name: green
+
+spec:
+  type: LoadBalancer
+
+  selector:
+    app: greenapp
+
+  ports:
+    - port: 80
+      protocol: TCP
+```
+
+---
+
+# Step 9: Create Namespace
+
+```bash
+kubectl create ns devnamespace
+```
+
+---
+
+# Step 10: Switch Namespace
+
+```bash
+kubectl config set-context --current --namespace=devnamespace
+```
+
+---
+
+# Step 11: Deploy Application
+
+Apply Deployment YAML:
+
+```bash
+kubectl apply -f pod.yaml
+```
+
+Apply Service YAML:
+
+```bash
+kubectl apply -f svc.yaml
+```
+
+---
+
+# Step 12: Verify Resources
+
+Check all Kubernetes resources:
+
+```bash
+kubectl get all
+```
+
+---
+
+# Step 13: Access Application
+
+After a few minutes:
+- AWS creates a LoadBalancer
+- External IP/DNS is generated
+
+Check service:
+
+```bash
+kubectl get svc
+```
+
+Copy the:
+- EXTERNAL-IP
+- LoadBalancer DNS
+
+Access application from browser using:
+```text
+http://<LoadBalancer-IP>
+```
+
+---
+
+# Features Used in This Deployment
+
+- Rolling Update Strategy
+- ReplicaSets
+- LoadBalancer Service
+- Namespace Isolation
+- Resource Requests & Limits
+- Startup Probe
+- Liveness Probe
+- Readiness Probe
+- Match Expressions
+- Zero-Downtime Deployment
